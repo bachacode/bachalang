@@ -15,7 +15,7 @@ class Position
     ) {
     }
 
-    public function advance(?string $currentChar)
+    public function advance(?string $currentChar): self
     {
         $this->index++;
         $this->col++;
@@ -27,7 +27,7 @@ class Position
         return $this;
     }
 
-    public function copy()
+    public function copy(): Position
     {
         return new Position($this->index, $this->line, $this->col, $this->fn, $this->ftxt);
     }

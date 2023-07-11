@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace Bachalang;
 
-use Bachalang\Token;
-
-use Bachalang\TT;
-
 class Lexer
 {
     public Position $pos;
@@ -21,7 +17,7 @@ class Lexer
         $this->advance();
     }
 
-    public function advance()
+    public function advance(): void
     {
         $this->pos->advance($this->currentChar);
         if($this->pos->index < strlen($this->text)) {
@@ -31,7 +27,7 @@ class Lexer
         }
     }
 
-    public function makeTokens()
+    public function makeTokens(): string|array
     {
         $tokens = [];
 
@@ -47,13 +43,18 @@ class Lexer
                 $posStart = $this->pos->copy();
                 $char = $this->currentChar;
                 $this->advance();
-                return "ERROR: " . (string) (new IllegalCharError($posStart, $this->pos, 'the following character is not permited: ' . "-> " . $char . " <-")) . PHP_EOL;
+                $errorMessage = (string) new IllegalCharError(
+                    $posStart,
+                    $this->pos,
+                    "the following character is not permited >> {$char}"
+                );
+                return "ERROR: {$errorMessage}" . PHP_EOL;
             }
         }
         return $tokens;
     }
 
-    public function makeNumber()
+    public function makeNumber(): string
     {
         $numString = '';
         $dotCount = 0;

@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Bachalang;
 
-use Bachalang\Position;
-
 class Error
 {
     public function __construct(
@@ -16,10 +14,11 @@ class Error
     ) {
     }
 
-    public function __toString()
+    public function __toString(): string
     {
-        $result = $this->errorName . ': ' . $this->details . PHP_EOL;
-        $result = $result . "File " . $this->posStart->fn . ', line ' . $this->posStart->line + 1;
+        $result = "{$this->errorName}: {$this->details}" . PHP_EOL;
+        $lineNumber = $this->posStart->line + 1;
+        $result = "{$result}File {$this->posStart->fn}, line {$lineNumber}";
         return $result;
     }
 }

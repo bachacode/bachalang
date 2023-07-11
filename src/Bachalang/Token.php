@@ -12,7 +12,7 @@ class Token
     ) {
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         if($this->value != null) {
             return "$this->type:$this->value";
