@@ -6,18 +6,18 @@ namespace Bachalang;
 
 class Lexer
 {
-    public Position $pos;
+    private Position $pos;
 
     public function __construct(
-        public string $fn,
-        public string $text,
-        public ?string $currentChar = null
+        private string $fn,
+        private string $text,
+        private ?string $currentChar = null
     ) {
         $this->pos = new Position(-1, 0, -1, $fn, $this->text);
         $this->advance();
     }
 
-    public function advance(): void
+    private function advance(): void
     {
         $this->pos->advance($this->currentChar);
         if($this->pos->index < strlen($this->text)) {
@@ -54,7 +54,7 @@ class Lexer
         return $tokens;
     }
 
-    public function makeNumber(): Token
+    private function makeNumber(): Token
     {
         $numString = '';
         $dotCount = 0;

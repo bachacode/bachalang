@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Bachalang\Nodes;
 
+use Bachalang\Token;
+
 class NumberNode
 {
     public function __construct(
-        public $token
+        public Token $token
     ) {
     }
 

@@ -12,12 +12,12 @@ class Parser
     public function __construct(
         public array $tokens,
         public int $tokenIndex = 0,
-        public $currentToken = null
+        public ?Token $currentToken = null
     ) {
         $this->currentToken = $this->tokens[$this->tokenIndex];
     }
 
-    public function advance()
+    private function advance(): Token
     {
         $this->tokenIndex++;
         if ($this->tokenIndex < count($this->tokens)) {
@@ -26,7 +26,7 @@ class Parser
         return $this->currentToken;
     }
 
-    public function factor()
+    private function factor(): ?NumberNode
     {
         $token = $this->currentToken;
 
@@ -36,27 +36,27 @@ class Parser
         }
     }
 
-    public function run()
+    public function run(): NumberNode|BinOpNode
     {
         $res = $this->expression();
         return $res;
     }
 
-    public function expression()
+    private function expression(): NumberNode|BinOpNode
     {
         $binaryOp = $this->getBinaryOperation(array($this, 'term'), [TT::PLUS->value, TT::MINUS->value]);
 
         return $binaryOp;
     }
 
-    public function term()
+    private function term(): NumberNode|BinOpNode
     {
         $binaryOp = $this->getBinaryOperation(array($this, 'factor'), [TT::MUL->value, TT::DIV->value]);
 
         return $binaryOp;
     }
 
-    private function getBinaryOperation(callable $func, array $operators)
+    private function getBinaryOperation(callable $func, array $operators): NumberNode|BinOpNode
     {
         $left = $func();
 

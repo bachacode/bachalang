@@ -9,7 +9,7 @@ use Bachalang\Token;
 class BinOpNode
 {
     public function __construct(
-        public NumberNode $leftNode,
+        public BinOpNode|NumberNode $leftNode,
         public Token $opNode,
         public BinOpNode|NumberNode $rightNode
     ) {
@@ -17,6 +17,6 @@ class BinOpNode
 
     public function __toString(): string
     {
-        return "{$this->leftNode}, {$this->opNode}, {$this->rightNode}";
+        return "({$this->leftNode}, {$this->opNode}, {$this->rightNode})";
     }
 }

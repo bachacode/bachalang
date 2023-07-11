@@ -25,8 +25,12 @@ while (true) {
 
     $lexer = new Lexer('<stdin>', $text);
     $tokens = $lexer->makeTokens();
-    // var_dump($tokens);
+
+    if(is_string($tokens)) {
+        echo $tokens;
+        exit;
+    }
     $parser = new Parser($tokens);
     $ast = $parser->run();
-    var_dump($ast) . PHP_EOL;
+    echo $ast . PHP_EOL;
 }
