@@ -11,9 +11,10 @@ class Parser
 {
     public function __construct(
         public array $tokens,
-        public int $tokenIndex = 1,
-        public mixed $currentToken = null
+        public int $tokenIndex = 0,
+        public $currentToken = null
     ) {
+        $this->currentToken = $this->tokens[$this->tokenIndex];
     }
 
     public function advance()
@@ -25,36 +26,43 @@ class Parser
         return $this->currentToken;
     }
 
-    public function factor(): NumberNode
+    public function factor()
     {
         $token = $this->currentToken;
 
-        if(in_array($token, [TT::FLOAT->value, TT::INT->value])) {
+        if(in_array($token->type, [TT::FLOAT->value, TT::INT->value])) {
             $this->advance();
             return new NumberNode($token);
         }
     }
 
+    public function run()
+    {
+        $res = $this->expression();
+        return $res;
+    }
+
     public function expression()
     {
-        $binaryOp = $this->getBinaryOperation($this->term(), [TT::PLUS->value, TT::MINUS->value]);
+        $binaryOp = $this->getBinaryOperation(array($this, 'term'), [TT::PLUS->value, TT::MINUS->value]);
 
         return $binaryOp;
     }
 
     public function term()
     {
-        $binaryOp = $this->getBinaryOperation($this->factor(), [TT::MUL->value, TT::DIV->value]);
+        $binaryOp = $this->getBinaryOperation(array($this, 'factor'), [TT::MUL->value, TT::DIV->value]);
 
         return $binaryOp;
     }
 
-    public function getBinaryOperation($func, array $operators)
+    private function getBinaryOperation(callable $func, array $operators)
     {
         $left = $func();
 
         while(in_array($this->currentToken, $operators)) {
             $opToken = $this->currentToken;
+            $this->advance();
             $right = $func();
             $left = new BinOpNode($left, $opToken, $right);
         }

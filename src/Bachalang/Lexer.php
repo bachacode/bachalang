@@ -35,7 +35,7 @@ class Lexer
             if(ctype_space($this->currentChar)) {
                 $this->advance();
             } elseif (TT::checkToken(($this->currentChar))) {
-                array_push($tokens, (string) new Token(TT::getToken($this->currentChar)));
+                array_push($tokens, new Token(TT::getToken($this->currentChar)));
                 $this->advance();
             } elseif(str_contains(DIGITS, $this->currentChar)) {
                 array_push($tokens, $this->makeNumber());
@@ -54,7 +54,7 @@ class Lexer
         return $tokens;
     }
 
-    public function makeNumber(): string
+    public function makeNumber(): Token
     {
         $numString = '';
         $dotCount = 0;
@@ -74,9 +74,9 @@ class Lexer
 
         }
         if($dotCount === 0) {
-            return (string) new Token(TT::INT->value, (int) $numString);
+            return new Token(TT::INT->value, (int) $numString);
         } else {
-            return (string) new Token(TT::FLOAT->value, (float) $numString);
+            return new Token(TT::FLOAT->value, (float) $numString);
         }
     }
 }

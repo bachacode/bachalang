@@ -18,16 +18,15 @@ spl_autoload_register(function ($class) {
 });
 
 use Bachalang\Lexer;
+use Bachalang\Parser;
 
 while (true) {
     $text = readline('bachalang > ');
 
     $lexer = new Lexer('<stdin>', $text);
     $tokens = $lexer->makeTokens();
-
-    if(is_array($tokens)) {
-        print_r($tokens);
-    } else {
-        echo $tokens;
-    }
+    // var_dump($tokens);
+    $parser = new Parser($tokens);
+    $ast = $parser->run();
+    var_dump($ast) . PHP_EOL;
 }
