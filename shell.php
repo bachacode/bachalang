@@ -24,12 +24,15 @@ while (true) {
 
     $lexer = new Lexer('<stdin>', $text);
     $tokens = $lexer->makeTokens();
-
-    $parser = new Parser($tokens);
-    $ast = $parser->run();
-    if($ast->error != null) {
-        echo $ast->error . PHP_EOL;
+    if(is_string($tokens)) {
+        echo $tokens;
     } else {
-        echo $ast->node . PHP_EOL;
+        $parser = new Parser($tokens);
+        $ast = $parser->run();
+        if($ast->error != null) {
+            echo $ast->error . PHP_EOL;
+        } else {
+            echo $ast->node . PHP_EOL;
+        }
     }
 }

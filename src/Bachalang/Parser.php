@@ -47,13 +47,13 @@ class Parser
     public function run()
     {
         $res = $this->expression();
-        // if($res->error != null && $this->currentToken->type != TT::EOF->value) {
-        //     return $res->failure(new InvalidSyntaxError(
-        //         $this->currentToken->posStart,
-        //         $this->currentToken->posEnd,
-        //         "Expected '+', '-', '*' or '/'"
-        //     ));
-        // }
+        if($res->error == null && $this->currentToken->type != TT::EOF->value) {
+            return $res->failure(new InvalidSyntaxError(
+                $this->currentToken->posStart,
+                $this->currentToken->posEnd,
+                "Expected '+', '-', '*' or '/'"
+            ));
+        }
         return $res;
     }
 
