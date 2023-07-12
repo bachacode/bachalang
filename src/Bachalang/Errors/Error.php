@@ -22,9 +22,9 @@ class Error
     {
         $result = "{$this->errorName}: {$this->details}" . PHP_EOL;
         $lineNumber = $this->posStart->line + 1;
-        $result = "{$result}File {$this->posStart->fn}, line {$lineNumber}";
+        $result .= "File {$this->posStart->fn}, line {$lineNumber}";
         $stringWithArrows = StringHelper::stringWithArrows($this->posStart->ftxt, $this->posStart, $this->posEnd);
-        $result = "{$result}\n\n $stringWithArrows";
+        $result .= "\n $stringWithArrows";
         return $result;
     }
 }

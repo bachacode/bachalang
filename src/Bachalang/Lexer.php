@@ -75,7 +75,7 @@ class Lexer
                 $dotCount++;
                 $numString = $numString . '.';
             } else {
-                $numString = $numString . $this->currentChar;
+                $numString .= $this->currentChar;
             }
             $this->advance();
 
