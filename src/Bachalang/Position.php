@@ -15,7 +15,7 @@ class Position
     ) {
     }
 
-    public function advance(?string $currentChar): self
+    public function advance(?string $currentChar = null): self
     {
         $this->index++;
         $this->col++;

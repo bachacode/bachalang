@@ -4,15 +4,20 @@ declare(strict_types=1);
 
 namespace Bachalang;
 
+use Bachalang\Errors\IllegalCharError;
+
 class Lexer
 {
     private Position $pos;
+    public Position $posStart;
+    public Position $posEnd;
 
     public function __construct(
         private string $fn,
         private string $text,
-        private ?string $currentChar = null
+        private ?string $currentChar = null,
     ) {
+
         $this->pos = new Position(-1, 0, -1, $fn, $this->text);
         $this->advance();
     }
@@ -35,7 +40,7 @@ class Lexer
             if(ctype_space($this->currentChar)) {
                 $this->advance();
             } elseif (TT::checkToken(($this->currentChar))) {
-                array_push($tokens, new Token(TT::getToken($this->currentChar)));
+                array_push($tokens, new Token(TT::getToken($this->currentChar), $this->pos));
                 $this->advance();
             } elseif(str_contains(DIGITS, $this->currentChar)) {
                 array_push($tokens, $this->makeNumber());
@@ -51,6 +56,7 @@ class Lexer
                 return "ERROR: {$errorMessage}" . PHP_EOL;
             }
         }
+        array_push($tokens, new Token(TT::EOF->value, $this->pos));
         return $tokens;
     }
 
@@ -58,6 +64,7 @@ class Lexer
     {
         $numString = '';
         $dotCount = 0;
+        $posStart = $this->pos->copy();
 
         while ($this->currentChar != null && str_contains(DIGITS . '.', $this->currentChar)) {
 
@@ -74,9 +81,9 @@ class Lexer
 
         }
         if($dotCount === 0) {
-            return new Token(TT::INT->value, (int) $numString);
+            return new Token(TT::INT->value, $posStart, $this->pos, (int) $numString);
         } else {
-            return new Token(TT::FLOAT->value, (float) $numString);
+            return new Token(TT::FLOAT->value, $posStart, $this->pos, (float) $numString);
         }
     }
 }

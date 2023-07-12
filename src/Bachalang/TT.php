@@ -14,6 +14,7 @@ enum TT: string
     case DIV = 'DIV';
     case LPAREN = 'LPAREN';
     case RPAREN = 'RPAREN';
+    case EOF = 'EOF';
 
     public static function getToken(string $char): string
     {

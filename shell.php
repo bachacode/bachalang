@@ -10,7 +10,6 @@ spl_autoload_register(function ($class) {
     $class_path = str_replace('\\', '/', $class);
 
     $file =  __DIR__ . '/src/' . $class_path . '.php';
-
     // if the file exists, require it
     if (file_exists($file)) {
         require $file;
@@ -26,11 +25,11 @@ while (true) {
     $lexer = new Lexer('<stdin>', $text);
     $tokens = $lexer->makeTokens();
 
-    if(is_string($tokens)) {
-        echo $tokens;
-        exit;
-    }
     $parser = new Parser($tokens);
     $ast = $parser->run();
-    echo $ast . PHP_EOL;
+    if($ast->error != null) {
+        echo $ast->error . PHP_EOL;
+    } else {
+        echo $ast->node . PHP_EOL;
+    }
 }

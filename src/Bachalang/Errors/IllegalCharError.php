@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Bachalang;
+namespace Bachalang\Errors;
 
 class IllegalCharError extends Error
 {
