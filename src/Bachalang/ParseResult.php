@@ -5,14 +5,13 @@ declare(strict_types=1);
 namespace Bachalang;
 
 use Bachalang\Errors\InvalidSyntaxError;
-use Bachalang\Nodes\BinOpNode;
-use Bachalang\Nodes\NumberNode;
+use Bachalang\Nodes\Node;
 
 class ParseResult
 {
     public function __construct(
         public ?InvalidSyntaxError $error = null,
-        public NumberNode|BinOpNode|null $node = null,
+        public ?Node $node = null,
     ) {
     }
 

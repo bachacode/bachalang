@@ -73,7 +73,7 @@ class Lexer
                     break;
                 }
                 $dotCount++;
-                $numString = $numString . '.';
+                $numString .= '.';
             } else {
                 $numString .= $this->currentChar;
             }

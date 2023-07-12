@@ -7,6 +7,7 @@ namespace Bachalang;
 use Bachalang\Errors\InvalidSyntaxError;
 use Bachalang\Nodes\BinOpNode;
 use Bachalang\Nodes\NumberNode;
+use Bachalang\Nodes\UnaryOpNode;
 
 class Parser
 {
@@ -32,9 +33,32 @@ class Parser
         $response = new ParseResult();
         $token = $this->currentToken;
 
-        if(in_array($token->type, [TT::FLOAT->value, TT::INT->value])) {
+        if(in_array($token->type, [TT::PLUS->value, TT::MINUS->value])) {
+            $response->register($this->advance());
+            $factor = $response->register($this->factor());
+            if($response->error != null) {
+                return $response;
+            } else {
+                return $response->success(new UnaryOpNode($token, $factor));
+            }
+        } elseif(in_array($token->type, [TT::FLOAT->value, TT::INT->value])) {
             $response->register($this->advance());
             return $response->success(new NumberNode($token));
+        } elseif ($token->type == TT::LPAREN->value) {
+            $response->register($this->advance());
+            $expr = $response->register($this->expression());
+            if($response->error != null) {
+                return $response;
+            } elseif($this->currentToken->type == TT::RPAREN->value) {
+                $response->register($this->advance());
+                return $response->success($expr);
+            } else {
+                return $response->failure(new InvalidSyntaxError(
+                    $this->currentToken->posStart,
+                    $this->currentToken->posEnd,
+                    "Expected ')' closing parentesis"
+                ));
+            }
         } else {
             return $response->failure(new InvalidSyntaxError(
                 $token->posStart,

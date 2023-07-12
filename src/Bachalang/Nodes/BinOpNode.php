@@ -6,12 +6,12 @@ namespace Bachalang\Nodes;
 
 use Bachalang\Token;
 
-class BinOpNode
+class BinOpNode extends Node
 {
     public function __construct(
-        public BinOpNode|NumberNode $leftNode,
+        public Node $leftNode,
         public Token $opNode,
-        public BinOpNode|NumberNode $rightNode
+        public Node $rightNode
     ) {
     }
 

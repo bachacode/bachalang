@@ -6,15 +6,16 @@ namespace Bachalang\Nodes;
 
 use Bachalang\Token;
 
-class NumberNode extends Node
+class UnaryOpNode extends Node
 {
     public function __construct(
-        public Token $token
+        public Token $opToken,
+        public Node $node
     ) {
     }
 
     public function __toString(): string
     {
-        return "{$this->token}";
+        return "({$this->opToken}, {$this->node})";
     }
 }
