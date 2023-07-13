@@ -9,7 +9,7 @@ use Bachalang\Position;
 class Number
 {
     public function __construct(
-        public int $value,
+        public int|float $value,
         public ?Position $posStart = null,
         public ?Position $posEnd = null
     ) {
