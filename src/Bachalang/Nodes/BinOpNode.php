@@ -13,6 +13,8 @@ class BinOpNode extends Node
         public Token $opNode,
         public Node $rightNode
     ) {
+        $this->posStart = $leftNode->posStart;
+        $this->posEnd = $rightNode->posEnd;
     }
 
     public function __toString(): string

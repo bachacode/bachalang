@@ -12,6 +12,8 @@ class UnaryOpNode extends Node
         public Token $opToken,
         public Node $node
     ) {
+        $this->posStart = $opToken->posStart;
+        $this->posEnd = $node->posEnd;
     }
 
     public function __toString(): string

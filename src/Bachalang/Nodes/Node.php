@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Bachalang\Nodes;
 
-class Node
+use Bachalang\Position;
+
+abstract class Node
 {
+    public ?Position $posStart;
+    public ?Position $posEnd;
 }
