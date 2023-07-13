@@ -54,8 +54,7 @@ class Interpreter
     private function visitUnaryOpNode(UnaryOpNode $node): Number
     {
         $number = $this->visit($node->node);
-
-        if($node->opToken === TT::MINUS->value) {
+        if($node->opToken == TT::MINUS->value) {
             $number = $number->multipliedBy(new Number(-1));
         }
         return $number->setPosition($node->posStart, $node->posEnd);
