@@ -35,7 +35,13 @@ while (true) {
         } else {
             $interpreter = new Interpreter();
             $result = $interpreter->visit($ast->node);
-            echo $result . PHP_EOL;
+
+            if($result->error != null) {
+                echo $result->error . PHP_EOL;
+            } else {
+                echo $ast->node . PHP_EOL;
+                echo $result->value . PHP_EOL;
+            }
         }
     }
 }

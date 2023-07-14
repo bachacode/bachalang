@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bachalang\Values;
 
+use Bachalang\Errors\RuntimeError;
 use Bachalang\Position;
 
 class Number
@@ -38,9 +39,13 @@ class Number
         return new Number($this->value * $other->value);
     }
 
-    public function dividedBy(Number $other): Number
+    public function dividedBy(Number $other): Number|RuntimeError
     {
-        return new Number($this->value / $other->value);
+        if($other->value == 0) {
+            return new RuntimeError($other->posStart, $other->posEnd, 'Division by zero is not allowed');
+        } else {
+            return new Number($this->value / $other->value);
+        }
     }
 
     public function __toString(): string
