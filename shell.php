@@ -16,6 +16,7 @@ spl_autoload_register(function ($class) {
     }
 });
 
+use Bachalang\Context;
 use Bachalang\Interpreter;
 use Bachalang\Lexer;
 use Bachalang\Parser;
@@ -34,8 +35,8 @@ while (true) {
             echo $ast->error . PHP_EOL;
         } else {
             $interpreter = new Interpreter();
-            $result = $interpreter->visit($ast->node);
-
+            $context = new Context('<program>');
+            $result = $interpreter->visit($ast->node, $context);
             if($result->error != null) {
                 echo $result->error . PHP_EOL;
             } else {

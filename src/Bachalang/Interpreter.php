@@ -14,38 +14,39 @@ use Exception;
 
 class Interpreter
 {
-    public function visit(Node $node): RuntimeError|RuntimeResult
+    public function visit(Node $node, Context $context): RuntimeError|RuntimeResult
     {
         $methodName = "visit";
         $methodName .= basename(get_class($node));
         if(method_exists($this, $methodName)) {
-            return call_user_func_array([$this, $methodName], [$node]);
+            return call_user_func_array([$this, $methodName], [$node, $context]);
         } else {
-            $this->noVisitMethod($methodName);
+            $this->noVisitMethod($methodName, $context);
         }
     }
 
-    private function noVisitMethod(string $methodName): never
+    private function noVisitMethod(string $methodName, Context $context): never
     {
         throw new Exception("Method: {$methodName} is not defined");
     }
 
-    private function visitNumberNode(NumberNode $node): RuntimeResult
+    private function visitNumberNode(NumberNode $node, Context $context): RuntimeResult
     {
         return (new RuntimeResult())->success(
             (new Number($node->token->value))
-        ->setPosition($node->posStart, $node->posEnd)
+            ->setContext($context)
+            ->setPosition($node->posStart, $node->posEnd)
         );
     }
 
-    private function visitBinOpNode(BinOpNode $node): RuntimeError|RuntimeResult
+    private function visitBinOpNode(BinOpNode $node, Context $context): RuntimeError|RuntimeResult
     {
         $response = new RuntimeResult();
-        $left = $response->register($this->visit($node->leftNode));
+        $left = $response->register($this->visit($node->leftNode, $context));
         if($response->error != null) {
             return $response;
         }
-        $right = $response->register($this->visit($node->rightNode));
+        $right = $response->register($this->visit($node->rightNode, $context));
 
         if($node->opNode == TT::PLUS->value) {
             $result = $left->addedTo($right);
@@ -63,10 +64,10 @@ class Interpreter
         }
     }
 
-    private function visitUnaryOpNode(UnaryOpNode $node): RuntimeError|RuntimeResult
+    private function visitUnaryOpNode(UnaryOpNode $node, Context $context): RuntimeError|RuntimeResult
     {
         $response = new RuntimeResult();
-        $number = $response->register($this->visit($node->node));
+        $number = $response->register($this->visit($node->node, $context));
         if($response->error != null) {
             return $response;
         }
