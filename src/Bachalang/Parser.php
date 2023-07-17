@@ -55,14 +55,16 @@ class Parser
             return $response->failure(new InvalidSyntaxError(
                 $token->posStart,
                 $token->posEnd,
-                "Expected '+', '-', '*' or '/'"
+                "Expected '+', '-', 'INT' or 'FLOAT'"
             ));
         }
     }
 
     private function power()
     {
-        return $this->getBinaryOperation(array($this, 'atom'), [TT::POW->value]);
+        $binaryOp = $this->getBinaryOperation(array($this, 'atom'), [TT::POW->value]);
+
+        return $binaryOp;
     }
 
     private function factor()

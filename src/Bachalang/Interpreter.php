@@ -80,7 +80,7 @@ class Interpreter
         if($number instanceof RuntimeError) {
             return $response->failure($number);
         } else {
-            return $number->setPosition($node->posStart, $node->posEnd);
+            return $response->success($number->setPosition($node->posStart, $node->posEnd));
         }
     }
 }
