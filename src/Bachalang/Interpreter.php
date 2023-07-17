@@ -56,6 +56,8 @@ class Interpreter
             $result = $left->multipliedBy($right);
         } elseif($node->opNode == TT::DIV->value) {
             $result = $left->dividedBy($right);
+        } elseif($node->opNode == TT::POW->value) {
+            $result = $left->powBy($right);
         }
         if($result instanceof RuntimeError) {
             return $response->failure($result);

@@ -28,20 +28,12 @@ class Parser
         return $this->currentToken;
     }
 
-    private function factor()
+    private function atom()
     {
         $response = new ParseResult();
         $token = $this->currentToken;
 
-        if(in_array($token->type, [TT::PLUS->value, TT::MINUS->value])) {
-            $response->register($this->advance());
-            $factor = $response->register($this->factor());
-            if($response->error != null) {
-                return $response;
-            } else {
-                return $response->success(new UnaryOpNode($token, $factor));
-            }
-        } elseif(in_array($token->type, [TT::FLOAT->value, TT::INT->value])) {
+        if(in_array($token->type, [TT::FLOAT->value, TT::INT->value])) {
             $response->register($this->advance());
             return $response->success(new NumberNode($token));
         } elseif ($token->type == TT::LPAREN->value) {
@@ -63,8 +55,31 @@ class Parser
             return $response->failure(new InvalidSyntaxError(
                 $token->posStart,
                 $token->posEnd,
-                'Expected INT or FLOAT'
+                "Expected '+', '-', '*' or '/'"
             ));
+        }
+    }
+
+    private function power()
+    {
+        return $this->getBinaryOperation(array($this, 'atom'), [TT::POW->value]);
+    }
+
+    private function factor()
+    {
+        $response = new ParseResult();
+        $token = $this->currentToken;
+
+        if(in_array($token->type, [TT::PLUS->value, TT::MINUS->value])) {
+            $response->register($this->advance());
+            $factor = $response->register($this->factor());
+            if($response->error != null) {
+                return $response;
+            } else {
+                return $response->success(new UnaryOpNode($token, $factor));
+            }
+        } else {
+            return $this->power();
         }
     }
 
@@ -95,10 +110,14 @@ class Parser
         return $binaryOp;
     }
 
-    private function getBinaryOperation(callable $func, array $operators)
+    private function getBinaryOperation(callable $funcA, array $operators, ?callable $funcB = null)
     {
+        if($funcB == null) {
+            $funcB = $funcA;
+        }
+
         $response = new ParseResult();
-        $left = $response->register($func());
+        $left = $response->register($funcA());
 
         if($response->error != null) {
             return $response;
@@ -107,7 +126,7 @@ class Parser
         while(in_array($this->currentToken, $operators)) {
             $opToken = $this->currentToken;
             $response->register($this->advance());
-            $right = $response->register($func());
+            $right = $response->register($funcB());
             if($response->error != null) {
                 return $response;
             } else {

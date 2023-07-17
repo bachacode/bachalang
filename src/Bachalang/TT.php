@@ -8,10 +8,14 @@ enum TT: string
 {
     case INT = 'INT';
     case FLOAT = 'FLOAT';
+    case IDENTIFIER = 'IDENTIFIER';
+    case KEYWORD = 'KEYWORD';
     case PLUS = 'PLUS';
     case MINUS = 'MINUS';
     case MUL = 'MUL';
     case DIV = 'DIV';
+    case POW = 'POW';
+    case EQUALS = 'EQUALS';
     case LPAREN = 'LPAREN';
     case RPAREN = 'RPAREN';
     case EOF = 'EOF';
@@ -23,6 +27,7 @@ enum TT: string
             '-' => TT::MINUS->value,
             '*' => TT::MUL->value,
             '/' => TT::DIV->value,
+            '^' => TT::POW->value,
             '(' => TT::LPAREN->value,
             ')' => TT::RPAREN->value,
         };
@@ -31,7 +36,7 @@ enum TT: string
     public static function checkToken(mixed $char): bool
     {
         return match($char) {
-            '+', '-', '*', '/', '(', ')' => true,
+            '+', '-', '*', '/', '^', '(', ')' => true,
             default => false
         };
     }

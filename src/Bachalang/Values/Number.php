@@ -57,6 +57,11 @@ class Number
         }
     }
 
+    public function powBy(Number $other): Number|RuntimeError
+    {
+        return (new Number($this->value ** $other->value))->setContext($this->context);
+    }
+
     public function __toString(): string
     {
         return "{$this->value}";
