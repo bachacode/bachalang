@@ -9,6 +9,8 @@ use Bachalang\Nodes\BinOpNode;
 use Bachalang\Nodes\Node;
 use Bachalang\Nodes\NumberNode;
 use Bachalang\Nodes\UnaryOpNode;
+use Bachalang\Nodes\VarAccessNode;
+use Bachalang\Nodes\VarAssignNode;
 use Bachalang\Values\Number;
 use Exception;
 
@@ -37,6 +39,40 @@ class Interpreter
             ->setContext($context)
             ->setPosition($node->posStart, $node->posEnd)
         );
+    }
+
+    private function visitVarAccessNode(VarAccessNode $node, Context $context)
+    {
+        $response = new RuntimeResult();
+        $varName = $node->varNameToken->value;
+        $value = $context->symbolTable->get($varName);
+
+        if($value == null && $value != 0) {
+            return $response->failure(
+                new RuntimeError(
+                    $node->posStart,
+                    $node->posEnd,
+                    "'{$varName}' is not defined",
+                    $context
+                )
+            );
+        } else {
+            return $response->success($value);
+        }
+    }
+
+    private function visitVarAssignNode(VarAssignNode $node, Context $context)
+    {
+        $response = new RuntimeResult();
+        $varName = $node->varNameToken->value;
+        $value = $response->register($this->visit($node->valueNode, $context));
+        if($response->error != null) {
+            return $response;
+        }
+
+        $context->symbolTable->set($varName, $value);
+        return $response->success($value);
+
     }
 
     private function visitBinOpNode(BinOpNode $node, Context $context): RuntimeError|RuntimeResult

@@ -26,6 +26,11 @@ class Token
         }
     }
 
+    public function matches(string $type, string $value): bool
+    {
+        return $this->type == $type && $this->value == $value;
+    }
+
     public function __toString(): string
     {
         if($this->value != null) {

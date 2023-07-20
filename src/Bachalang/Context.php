@@ -9,7 +9,8 @@ class Context
     public function __construct(
         public $displayName,
         public $parent = null,
-        public $parentEntryPos = null
+        public $parentEntryPos = null,
+        public ?SymbolTable $symbolTable = null
     ) {
     }
 }

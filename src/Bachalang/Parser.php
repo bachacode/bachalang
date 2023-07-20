@@ -8,6 +8,8 @@ use Bachalang\Errors\InvalidSyntaxError;
 use Bachalang\Nodes\BinOpNode;
 use Bachalang\Nodes\NumberNode;
 use Bachalang\Nodes\UnaryOpNode;
+use Bachalang\Nodes\VarAccessNode;
+use Bachalang\Nodes\VarAssignNode;
 
 class Parser
 {
@@ -36,6 +38,9 @@ class Parser
         if(in_array($token->type, [TT::FLOAT->value, TT::INT->value])) {
             $response->register($this->advance());
             return $response->success(new NumberNode($token));
+        } elseif($token->type == TT::IDENTIFIER->value) {
+            $response->register($this->advance());
+            return $response->success(new VarAccessNode($token));
         } elseif ($token->type == TT::LPAREN->value) {
             $response->register($this->advance());
             $expr = $response->register($this->expression());
@@ -100,9 +105,38 @@ class Parser
 
     private function expression()
     {
-        $binaryOp = $this->getBinaryOperation(array($this, 'term'), [TT::PLUS->value, TT::MINUS->value]);
+        if(!$this->currentToken->matches(TT::KEYWORD->value, 'var')) {
+            return $this->getBinaryOperation(array($this, 'term'), [TT::PLUS->value, TT::MINUS->value]);
+        }
+        $response = new ParseResult();
+        $response->register($this->advance());
+        if($this->currentToken->type != TT::IDENTIFIER->value) {
+            return $response->failure(new InvalidSyntaxError(
+                $this->currentToken->posStart,
+                $this->currentToken->posEnd,
+                "Expected identifier"
+            ));
+        }
+        $varName = $this->currentToken;
+        $response->register($this->advance());
 
-        return $binaryOp;
+        if($this->currentToken->type != TT::EQUALS->value) {
+            return $response->failure(new InvalidSyntaxError(
+                $this->currentToken->posStart,
+                $this->currentToken->posEnd,
+                "Expected equal sign '='"
+            ));
+        }
+
+        $response->register($this->advance());
+
+        $expr = $response->register($this->expression());
+
+        if($response->error != null) {
+            return $response;
+        } else {
+            return $response->success(new VarAssignNode($varName, $expr));
+        }
     }
 
     private function term()

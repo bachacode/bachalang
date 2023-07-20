@@ -39,6 +39,9 @@ class Lexer
         while ($this->currentChar != null) {
             if(ctype_space($this->currentChar)) {
                 $this->advance();
+            } elseif (str_contains(LETTERS, $this->currentChar)) {
+                array_push($tokens, $this->makeIdentifier());
+                $this->advance();
             } elseif (TT::checkToken(($this->currentChar))) {
                 array_push($tokens, new Token(TT::getToken($this->currentChar), $this->pos));
                 $this->advance();
@@ -58,6 +61,25 @@ class Lexer
         }
         array_push($tokens, new Token(TT::EOF->value, $this->pos));
         return $tokens;
+    }
+
+    private function makeIdentifier()
+    {
+        $idStr = '';
+        $posStart = $this->pos->copy();
+
+        while ($this->currentChar != null && str_contains(LETTERS_DIGITS . '_', $this->currentChar)) {
+            $idStr .= $this->currentChar;
+            $this->advance();
+        }
+
+        if(in_array($idStr, KEYWORDS)) {
+            $tokenType = TT::KEYWORD->value;
+        } else {
+            $tokenType = TT::IDENTIFIER->value;
+        }
+
+        return new Token($tokenType, $posStart, $this->pos, $idStr);
     }
 
     private function makeNumber(): Token

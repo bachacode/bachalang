@@ -28,6 +28,7 @@ enum TT: string
             '*' => TT::MUL->value,
             '/' => TT::DIV->value,
             '^' => TT::POW->value,
+            '=' => TT::EQUALS->value,
             '(' => TT::LPAREN->value,
             ')' => TT::RPAREN->value,
         };
@@ -36,7 +37,7 @@ enum TT: string
     public static function checkToken(mixed $char): bool
     {
         return match($char) {
-            '+', '-', '*', '/', '^', '(', ')' => true,
+            '+', '-', '*', '/', '^', '=', '(', ')'  => true,
             default => false
         };
     }
