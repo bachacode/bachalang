@@ -36,18 +36,22 @@ class Parser
         $token = $this->currentToken;
 
         if(in_array($token->type, [TT::FLOAT->value, TT::INT->value])) {
-            $response->register($this->advance());
+            $response->registerAdvancement();
+            $this->advance();
             return $response->success(new NumberNode($token));
         } elseif($token->type == TT::IDENTIFIER->value) {
-            $response->register($this->advance());
+            $response->registerAdvancement();
+            $this->advance();
             return $response->success(new VarAccessNode($token));
         } elseif ($token->type == TT::LPAREN->value) {
-            $response->register($this->advance());
+            $response->registerAdvancement();
+            $this->advance();
             $expr = $response->register($this->expression());
             if($response->error != null) {
                 return $response;
             } elseif($this->currentToken->type == TT::RPAREN->value) {
-                $response->register($this->advance());
+                $response->registerAdvancement();
+                $this->advance();
                 return $response->success($expr);
             } else {
                 return $response->failure(new InvalidSyntaxError(
@@ -60,7 +64,7 @@ class Parser
             return $response->failure(new InvalidSyntaxError(
                 $token->posStart,
                 $token->posEnd,
-                "Expected '+', '-', 'INT' or 'FLOAT'"
+                "Expected '+', '-', 'IDENTIFIER', '(' 'INT' or 'FLOAT'"
             ));
         }
     }
@@ -78,7 +82,8 @@ class Parser
         $token = $this->currentToken;
 
         if(in_array($token->type, [TT::PLUS->value, TT::MINUS->value])) {
-            $response->register($this->advance());
+            $response->registerAdvancement();
+            $this->advance();
             $factor = $response->register($this->factor());
             if($response->error != null) {
                 return $response;
@@ -105,11 +110,23 @@ class Parser
 
     private function expression()
     {
-        if(!$this->currentToken->matches(TT::KEYWORD->value, 'var')) {
-            return $this->getBinaryOperation(array($this, 'term'), [TT::PLUS->value, TT::MINUS->value]);
-        }
         $response = new ParseResult();
-        $response->register($this->advance());
+        if(!$this->currentToken->matches(TT::KEYWORD->value, 'var')) {
+            $node = $response->register(
+                $this->getBinaryOperation(array($this, 'term'), [TT::PLUS->value, TT::MINUS->value])
+            );
+            if($response->error != null) {
+                return $response->failure(new InvalidSyntaxError(
+                    $this->currentToken->posStart,
+                    $this->currentToken->posEnd,
+                    "Expected '+', '-', 'IDENTIFIER', 'VAR', '(' 'INT' or 'FLOAT'"
+                ));
+            } else {
+                return $response->success($node);
+            }
+        }
+        $response->registerAdvancement();
+        $this->advance();
         if($this->currentToken->type != TT::IDENTIFIER->value) {
             return $response->failure(new InvalidSyntaxError(
                 $this->currentToken->posStart,
@@ -118,7 +135,8 @@ class Parser
             ));
         }
         $varName = $this->currentToken;
-        $response->register($this->advance());
+        $response->registerAdvancement();
+        $this->advance();
 
         if($this->currentToken->type != TT::EQUALS->value) {
             return $response->failure(new InvalidSyntaxError(
@@ -128,7 +146,8 @@ class Parser
             ));
         }
 
-        $response->register($this->advance());
+        $response->registerAdvancement();
+        $this->advance();
 
         $expr = $response->register($this->expression());
 
@@ -161,7 +180,8 @@ class Parser
 
         while(in_array($this->currentToken, $operators)) {
             $opToken = $this->currentToken;
-            $response->register($this->advance());
+            $response->registerAdvancement();
+            $this->advance();
             $right = $response->register($funcB());
             if($response->error != null) {
                 return $response;

@@ -12,9 +12,9 @@ class Number
 {
     public function __construct(
         public int|float $value,
-        public ?Position $posStart = null,
-        public ?Position $posEnd = null,
-        public ?Context $context = null
+        private ?Position $posStart = null,
+        private ?Position $posEnd = null,
+        private ?Context $context = null
     ) {
         $this->setPosition();
         $this->setContext();
@@ -65,5 +65,13 @@ class Number
     public function __toString(): string
     {
         return "{$this->value}";
+    }
+
+    public function copy(): Number
+    {
+        $copy = new Number($this->value);
+        $copy->setPosition($this->posStart, $this->posEnd);
+        $copy->setContext($this->context);
+        return $copy;
     }
 }

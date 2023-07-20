@@ -12,20 +12,23 @@ class ParseResult
     public function __construct(
         public ?InvalidSyntaxError $error = null,
         public ?Node $node = null,
+        public int $advanceCount = 0
     ) {
     }
 
-    public function register($res)
+    public function register(ParseResult $res)
     {
-        if($res instanceof ParseResult) {
-            if($res->error === null) {
-                return $res->node;
-            } else {
-                $this->error = $res->error;
-                return $res;
-            }
+        $this->advanceCount += $res->advanceCount;
+        if($res->error != null) {
+            $this->error = $res->error;
+            return $res->error;
         }
-        return $res;
+        return $res->node;
+    }
+
+    public function registerAdvancement()
+    {
+        $this->advanceCount++;
     }
 
     public function success($node)
@@ -36,7 +39,9 @@ class ParseResult
 
     public function failure($error)
     {
-        $this->error = $error;
+        if($this->error == null || $this->advanceCount == 0) {
+            $this->error = $error;
+        }
         return $this;
     }
 }

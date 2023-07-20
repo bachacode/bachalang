@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Bachalang;
 
+use Bachalang\Values\Number;
+
 class SymbolTable
 {
     public function __construct(
@@ -12,7 +14,7 @@ class SymbolTable
     ) {
     }
 
-    public function get(string $name)
+    public function get(string $name): Number
     {
         $value = $this->symbols[$name] ?? null;
 

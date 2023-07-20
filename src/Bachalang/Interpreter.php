@@ -57,6 +57,7 @@ class Interpreter
                 )
             );
         } else {
+            $value = ($value->copy())->setPosition($node->posStart, $node->posEnd);
             return $response->success($value);
         }
     }
