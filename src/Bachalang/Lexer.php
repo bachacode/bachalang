@@ -42,8 +42,8 @@ class Lexer
             } elseif (str_contains(LETTERS, $this->currentChar)) {
                 array_push($tokens, $this->makeIdentifier());
                 $this->advance();
-            } elseif (TT::checkToken(($this->currentChar))) {
-                array_push($tokens, new Token(TT::getToken($this->currentChar), $this->pos));
+            } elseif (TokenType::checkToken(($this->currentChar))) {
+                array_push($tokens, new Token(TokenType::getToken($this->currentChar), $this->pos));
                 $this->advance();
             } elseif(str_contains(DIGITS, $this->currentChar)) {
                 array_push($tokens, $this->makeNumber());
@@ -59,7 +59,7 @@ class Lexer
                 return "ERROR: {$errorMessage}" . PHP_EOL;
             }
         }
-        array_push($tokens, new Token(TT::EOF->value, $this->pos));
+        array_push($tokens, new Token(TokenType::EOF, $this->pos));
         return $tokens;
     }
 
@@ -74,9 +74,9 @@ class Lexer
         }
 
         if(in_array($idStr, KEYWORDS)) {
-            $tokenType = TT::KEYWORD->value;
+            $tokenType = TokenType::KEYWORD;
         } else {
-            $tokenType = TT::IDENTIFIER->value;
+            $tokenType = TokenType::IDENTIFIER;
         }
 
         return new Token($tokenType, $posStart, $this->pos, $idStr);
@@ -103,9 +103,9 @@ class Lexer
 
         }
         if($dotCount === 0) {
-            return new Token(TT::INT->value, $posStart, $this->pos, (int) $numString);
+            return new Token(TokenType::INT, $posStart, $this->pos, (int) $numString);
         } else {
-            return new Token(TT::FLOAT->value, $posStart, $this->pos, (float) $numString);
+            return new Token(TokenType::FLOAT, $posStart, $this->pos, (float) $numString);
         }
     }
 }

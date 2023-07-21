@@ -85,15 +85,15 @@ class Interpreter
         }
         $right = $response->register($this->visit($node->rightNode, $context));
 
-        if($node->opNode == TT::PLUS->value) {
+        if($node->opNode->type == TokenType::PLUS) {
             $result = $left->addedTo($right);
-        } elseif($node->opNode == TT::MINUS->value) {
+        } elseif($node->opNode->type == TokenType::MINUS) {
             $result = $left->substractedBy($right);
-        } elseif($node->opNode == TT::MUL->value) {
+        } elseif($node->opNode->type == TokenType::MUL) {
             $result = $left->multipliedBy($right);
-        } elseif($node->opNode == TT::DIV->value) {
+        } elseif($node->opNode->type == TokenType::DIV) {
             $result = $left->dividedBy($right);
-        } elseif($node->opNode == TT::POW->value) {
+        } elseif($node->opNode->type == TokenType::POW) {
             $result = $left->powBy($right);
         }
         if($result instanceof RuntimeError) {
@@ -111,7 +111,7 @@ class Interpreter
             return $response;
         }
 
-        if($node->opToken == TT::MINUS->value) {
+        if($node->opToken == TokenType::MINUS) {
             $number = $number->multipliedBy(new Number(-1));
         }
         if($number instanceof RuntimeError) {

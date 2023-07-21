@@ -24,6 +24,7 @@ class Parser
     private function advance(): Token
     {
         $this->tokenIndex++;
+
         if ($this->tokenIndex < count($this->tokens)) {
             $this->currentToken = $this->tokens[$this->tokenIndex];
         }
@@ -34,22 +35,21 @@ class Parser
     {
         $response = new ParseResult();
         $token = $this->currentToken;
-
-        if(in_array($token->type, [TT::FLOAT->value, TT::INT->value])) {
+        if(in_array($token->type, [TokenType::FLOAT, TokenType::INT])) {
             $response->registerAdvancement();
             $this->advance();
             return $response->success(new NumberNode($token));
-        } elseif($token->type == TT::IDENTIFIER->value) {
+        } elseif($token->type == TokenType::IDENTIFIER) {
             $response->registerAdvancement();
             $this->advance();
             return $response->success(new VarAccessNode($token));
-        } elseif ($token->type == TT::LPAREN->value) {
+        } elseif ($token->type == TokenType::LPAREN) {
             $response->registerAdvancement();
             $this->advance();
             $expr = $response->register($this->expression());
             if($response->error != null) {
                 return $response;
-            } elseif($this->currentToken->type == TT::RPAREN->value) {
+            } elseif($this->currentToken->type == TokenType::RPAREN) {
                 $response->registerAdvancement();
                 $this->advance();
                 return $response->success($expr);
@@ -71,7 +71,7 @@ class Parser
 
     private function power()
     {
-        $binaryOp = $this->getBinaryOperation(array($this, 'atom'), [TT::POW->value]);
+        $binaryOp = $this->getBinaryOperation(array($this, 'atom'), [TokenType::POW]);
 
         return $binaryOp;
     }
@@ -81,7 +81,7 @@ class Parser
         $response = new ParseResult();
         $token = $this->currentToken;
 
-        if(in_array($token->type, [TT::PLUS->value, TT::MINUS->value])) {
+        if(in_array($token->type, [TokenType::PLUS, TokenType::MINUS])) {
             $response->registerAdvancement();
             $this->advance();
             $factor = $response->register($this->factor());
@@ -98,7 +98,7 @@ class Parser
     public function run()
     {
         $res = $this->expression();
-        if($res->error == null && $this->currentToken->type != TT::EOF->value) {
+        if($res->error == null && $this->currentToken->type != TokenType::EOF) {
             return $res->failure(new InvalidSyntaxError(
                 $this->currentToken->posStart,
                 $this->currentToken->posEnd,
@@ -111,9 +111,9 @@ class Parser
     private function expression()
     {
         $response = new ParseResult();
-        if(!$this->currentToken->matches(TT::KEYWORD->value, 'var')) {
+        if(!$this->currentToken->matches(TokenType::KEYWORD, 'var')) {
             $node = $response->register(
-                $this->getBinaryOperation(array($this, 'term'), [TT::PLUS->value, TT::MINUS->value])
+                $this->getBinaryOperation(array($this, 'term'), [TokenType::PLUS, TokenType::MINUS])
             );
             if($response->error != null) {
                 return $response->failure(new InvalidSyntaxError(
@@ -127,7 +127,7 @@ class Parser
         }
         $response->registerAdvancement();
         $this->advance();
-        if($this->currentToken->type != TT::IDENTIFIER->value) {
+        if($this->currentToken->type != TokenType::IDENTIFIER) {
             return $response->failure(new InvalidSyntaxError(
                 $this->currentToken->posStart,
                 $this->currentToken->posEnd,
@@ -138,7 +138,7 @@ class Parser
         $response->registerAdvancement();
         $this->advance();
 
-        if($this->currentToken->type != TT::EQUALS->value) {
+        if($this->currentToken->type != TokenType::EQUALS) {
             return $response->failure(new InvalidSyntaxError(
                 $this->currentToken->posStart,
                 $this->currentToken->posEnd,
@@ -160,7 +160,7 @@ class Parser
 
     private function term()
     {
-        $binaryOp = $this->getBinaryOperation(array($this, 'factor'), [TT::MUL->value, TT::DIV->value]);
+        $binaryOp = $this->getBinaryOperation(array($this, 'factor'), [TokenType::MUL, TokenType::DIV]);
 
         return $binaryOp;
     }
@@ -177,8 +177,7 @@ class Parser
         if($response->error != null) {
             return $response;
         }
-
-        while(in_array($this->currentToken, $operators)) {
+        while(in_array($this->currentToken->type, $operators)) {
             $opToken = $this->currentToken;
             $response->registerAdvancement();
             $this->advance();

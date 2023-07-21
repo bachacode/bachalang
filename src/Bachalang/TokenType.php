@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Bachalang;
 
-enum TT: string
+enum TokenType: string
 {
     case INT = 'INT';
     case FLOAT = 'FLOAT';
@@ -20,17 +20,17 @@ enum TT: string
     case RPAREN = 'RPAREN';
     case EOF = 'EOF';
 
-    public static function getToken(string $char): string
+    public static function getToken(string $char): TokenType
     {
         return match($char) {
-            '+' => TT::PLUS->value,
-            '-' => TT::MINUS->value,
-            '*' => TT::MUL->value,
-            '/' => TT::DIV->value,
-            '^' => TT::POW->value,
-            '=' => TT::EQUALS->value,
-            '(' => TT::LPAREN->value,
-            ')' => TT::RPAREN->value,
+            '+' => TokenType::PLUS,
+            '-' => TokenType::MINUS,
+            '*' => TokenType::MUL,
+            '/' => TokenType::DIV,
+            '^' => TokenType::POW,
+            '=' => TokenType::EQUALS,
+            '(' => TokenType::LPAREN,
+            ')' => TokenType::RPAREN,
         };
     }
 

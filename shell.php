@@ -30,7 +30,6 @@ $globalSymbolTable->set('null', 0);
 
 while (true) {
     $text = readline('bachalang > ');
-
     $lexer = new Lexer('<stdin>', $text);
     $tokens = $lexer->makeTokens();
     if(is_string($tokens)) {
@@ -51,7 +50,6 @@ while (true) {
             if($result->error != null) {
                 echo $result->error . PHP_EOL;
             } else {
-                // echo $ast->node . PHP_EOL;
                 echo $result->value . PHP_EOL;
             }
         }

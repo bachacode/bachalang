@@ -10,7 +10,7 @@ class Token
     public ?Position $posEnd = null;
 
     public function __construct(
-        public string $type,
+        public TokenType $type,
         Position $posStart,
         ?Position $posEnd = null,
         public $value = null
@@ -26,16 +26,17 @@ class Token
         }
     }
 
-    public function matches(string $type, string $value): bool
+    public function matches(TokenType $type, string $value): bool
     {
         return $this->type == $type && $this->value == $value;
     }
 
     public function __toString(): string
     {
+        $tokenType = $this->type->value;
         if($this->value != null) {
-            return "$this->type:$this->value";
+            return "$tokenType:$this->value";
         }
-        return "$this->type";
+        return $tokenType;
     }
 }
