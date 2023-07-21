@@ -2,22 +2,8 @@
 
 declare(strict_types=1);
 
-define('DIGITS', '0123456789');
-define('LETTERS', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
-define('LETTERS_DIGITS', DIGITS . LETTERS);
-define('KEYWORDS', ['var', '&&', '||', '!']);
-
-spl_autoload_register(function ($class) {
-    // replace namespace separators with directory separators in the relative
-    // class name, append with .php
-    $class_path = str_replace('\\', '/', $class);
-
-    $file =  __DIR__ . '/src/' . $class_path . '.php';
-    // if the file exists, require it
-    if (file_exists($file)) {
-        require $file;
-    }
-});
+require_once('./contants.php');
+require_once('./autoloader.php');
 
 use Bachalang\Context;
 use Bachalang\Interpreter;
@@ -25,33 +11,38 @@ use Bachalang\Lexer;
 use Bachalang\Parser;
 use Bachalang\SymbolTable;
 
-$globalSymbolTable = new SymbolTable();
-$globalSymbolTable->set('null', 0);
-
-while (true) {
-    $text = readline('bachalang > ');
+function run($text)
+{
+    // Lexer - create tokens
     $lexer = new Lexer('<stdin>', $text);
     $tokens = $lexer->makeTokens();
-    if(is_string($tokens)) {
-        echo $tokens;
-    } else {
-        $parser = new Parser($tokens);
-        $ast = $parser->run();
-        if($ast->error != null) {
-            echo $ast->error . PHP_EOL;
-        } else {
-            $interpreter = new Interpreter();
-            $context = new Context(
-                displayName: '<program>',
-                symbolTable: $globalSymbolTable
-            );
-            // var_dump($context);
-            $result = $interpreter->visit($ast->node, $context);
-            if($result->error != null) {
-                echo $result->error . PHP_EOL;
-            } else {
-                echo $result->value . PHP_EOL;
-            }
-        }
+    if($lexer->error != null) {
+        return $lexer->error;
     }
+
+    // Parser - Convert tokens given into a Abstract Syntax Tree
+    $parser = new Parser($tokens);
+    $ast = $parser->run();
+    if($ast->error != null) {
+        return $ast->error;
+    }
+
+    // Interpreter - Translate the Abstract Syntax Tree into human readabale behaviour
+    $interpreter = new Interpreter();
+    $globalSymbolTable = new SymbolTable();
+    $globalSymbolTable->set('null', 0);
+    $context = new Context(
+        displayName: '<program>',
+        symbolTable: $globalSymbolTable
+    );
+    $result = $interpreter->visit($ast->node, $context);
+    if($result->error != null) {
+        return $result->error;
+    }
+    return $result->value;
+}
+while (true) {
+    $text = readline('bachalang > ');
+    $result = run($text);
+    echo $result . PHP_EOL;
 }

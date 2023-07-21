@@ -16,6 +16,7 @@ class Lexer
         private string $fn,
         private string $text,
         private ?string $currentChar = null,
+        public ?string $error = null
     ) {
 
         $this->pos = new Position(-1, 0, -1, $fn, $this->text);
@@ -59,12 +60,11 @@ class Lexer
                 $posStart = $this->pos->copy();
                 $char = $this->currentChar;
                 $this->advance();
-                $errorMessage = (string) new IllegalCharError(
+                $this->error = "ERROR: ".(string) new IllegalCharError(
                     $posStart,
                     $this->pos,
                     "the following character is not permited >> {$char}"
-                );
-                return "ERROR: {$errorMessage}" . PHP_EOL;
+                ) . PHP_EOL;
             }
         }
         array_push($tokens, new Token(TokenType::EOF, $this->pos));
