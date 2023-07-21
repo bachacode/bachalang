@@ -15,9 +15,16 @@ enum TokenType: string
     case MUL = 'MUL';
     case DIV = 'DIV';
     case POW = 'POW';
-    case EQUALS = 'EQUALS';
     case LPAREN = 'LPAREN';
     case RPAREN = 'RPAREN';
+    case EQUALS = 'EQUALS';
+    case EE = 'EE';
+    case NOT = 'NOT';
+    case NE = 'NE';
+    case LT = 'LT';
+    case GT = 'GT';
+    case LTE = 'LTE';
+    case GTE = 'GTE';
     case EOF = 'EOF';
 
     public static function getToken(string $char): TokenType
@@ -28,7 +35,6 @@ enum TokenType: string
             '*' => TokenType::MUL,
             '/' => TokenType::DIV,
             '^' => TokenType::POW,
-            '=' => TokenType::EQUALS,
             '(' => TokenType::LPAREN,
             ')' => TokenType::RPAREN,
         };
@@ -37,7 +43,7 @@ enum TokenType: string
     public static function checkToken(mixed $char): bool
     {
         return match($char) {
-            '+', '-', '*', '/', '^', '=', '(', ')'  => true,
+            '+', '-', '*', '/', '^', '(', ')'  => true,
             default => false
         };
     }

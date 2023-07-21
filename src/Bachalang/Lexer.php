@@ -47,6 +47,14 @@ class Lexer
                 $this->advance();
             } elseif(str_contains(DIGITS, $this->currentChar)) {
                 array_push($tokens, $this->makeNumber());
+            } elseif($this->currentChar == '=') {
+                array_push($tokens, $this->makeEquals());
+            } elseif($this->currentChar == '!') {
+                array_push($tokens, $this->makeNotEqualOrNot());
+            } elseif($this->currentChar == '<') {
+                array_push($tokens, $this->makeLessThan());
+            } elseif($this->currentChar == '>') {
+                array_push($tokens, $this->makeGreaterThan());
             } else {
                 $posStart = $this->pos->copy();
                 $char = $this->currentChar;
@@ -80,6 +88,41 @@ class Lexer
         }
 
         return new Token($tokenType, $posStart, $this->pos, $idStr);
+    }
+
+    private function makeEquals(): Token
+    {
+        return $this->getTokenType(TokenType::EE, TokenType::EQUALS);
+    }
+
+    private function makeLessThan(): Token
+    {
+        return $this->getTokenType(TokenType::LTE, TokenType::LT);
+    }
+
+    private function makeGreaterThan(): Token
+    {
+        return $this->getTokenType(TokenType::GTE, TokenType::GT);
+    }
+
+    private function makeNotEqualOrNot(): Token
+    {
+        return $this->getTokenType(TokenType::NE, TokenType::NOT);
+    }
+
+    private function getTokenType(TokenType $firstType, TokenType $secondType): Token
+    {
+        $tokenValue = $this->currentChar;
+        $posStart = $this->pos->copy();
+
+        $this->advance();
+        if($this->currentChar != null && str_contains('=', $this->currentChar)) {
+            $tokenValue .= $this->currentChar;
+            $this->advance();
+            return new Token($firstType, $posStart, $this->pos, $tokenValue);
+        } else {
+            return new Token($secondType, $posStart, $this->pos, $tokenValue);
+        }
     }
 
     private function makeNumber(): Token

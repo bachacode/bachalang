@@ -13,6 +13,10 @@ use Bachalang\Nodes\VarAssignNode;
 
 class Parser
 {
+    /**
+     * @param Token[] $tokens
+     */
+
     public function __construct(
         public array $tokens,
         public int $tokenIndex = 0,
