@@ -12,5 +12,7 @@ $runner = new Runner();
 while (true) {
     $text = readline('bachalang > ');
     $result = $runner->run($text);
-    echo $result . PHP_EOL;
+    if(!is_null($result)) {
+        echo $result . PHP_EOL;
+    }
 }

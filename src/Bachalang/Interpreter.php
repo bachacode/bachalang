@@ -6,6 +6,7 @@ namespace Bachalang;
 
 use Bachalang\Errors\RuntimeError;
 use Bachalang\Nodes\BinOpNode;
+use Bachalang\Nodes\IfNode;
 use Bachalang\Nodes\Node;
 use Bachalang\Nodes\NumberNode;
 use Bachalang\Nodes\UnaryOpNode;
@@ -123,5 +124,34 @@ class Interpreter
         } else {
             return $response->success($number->setPosition($node->posStart, $node->posEnd));
         }
+    }
+
+    private function visitIfNode(IfNode $node, Context $context): RuntimeError|RuntimeResult
+    {
+        $response = new RuntimeResult();
+        foreach ($node->cases as [$condition, $expr]) {
+            $conditionValue = $response->register($this->visit($condition, $context));
+            if(!is_null($response->error)) {
+                return $response;
+            }
+
+            if($conditionValue->isTrue()) {
+                $exprValue = $response->register($this->visit($expr, $context));
+                if(!is_null($response->error)) {
+                    return $response;
+                }
+                return $response->success($exprValue);
+            }
+        }
+
+        if(!is_null($node->elseCase)) {
+            $elseValue = $response->register($this->visit($node->elseCase, $context));
+            if(!is_null($response->error)) {
+                return $response;
+            }
+            return $response->success($elseValue);
+        }
+
+        return $response->success(null);
     }
 }

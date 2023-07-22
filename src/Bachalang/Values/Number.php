@@ -107,6 +107,11 @@ class Number
         return (new Number($this->value ? 0 : 1))->setContext($this->context);
     }
 
+    public function isTrue(): bool|int
+    {
+        return $this->value != 0 ? 1 : 0;
+    }
+
     public function __toString(): string
     {
         return "{$this->value}";

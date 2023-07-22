@@ -6,6 +6,7 @@ namespace Bachalang;
 
 use Bachalang\Errors\InvalidSyntaxError;
 use Bachalang\Nodes\BinOpNode;
+use Bachalang\Nodes\IfNode;
 use Bachalang\Nodes\NumberNode;
 use Bachalang\Nodes\UnaryOpNode;
 use Bachalang\Nodes\VarAccessNode;
@@ -168,18 +169,18 @@ class Parser
 
     private function factor()
     {
-        $response = new ParseResult();
+        $result = new ParseResult();
         $token = $this->currentToken;
 
         // #7 Priority - Positive/negative factor
         if(in_array($token->type, [TokenType::PLUS, TokenType::MINUS])) {
-            $response->registerAdvancement();
+            $result->registerAdvancement();
             $this->advance();
-            $factor = $response->register($this->factor());
-            if($response->error != null) {
-                return $response;
+            $factor = $result->register($this->factor());
+            if($result->error != null) {
+                return $result;
             } else {
-                return $response->success(new UnaryOpNode($token, $factor));
+                return $result->success(new UnaryOpNode($token, $factor));
             }
         }
         // #8 Priority - Exponential factor
@@ -196,48 +197,137 @@ class Parser
 
     private function atom()
     {
-        $response = new ParseResult();
+        $result = new ParseResult();
         $token = $this->currentToken;
 
         // #10 Priority - Integer or Float
         if(in_array($token->type, [TokenType::FLOAT, TokenType::INT])) {
-            $response->registerAdvancement();
+            $result->registerAdvancement();
             $this->advance();
-            return $response->success(new NumberNode($token));
+            return $result->success(new NumberNode($token));
         }
         // #11 Priority - Identifier of a variable
         elseif($token->type == TokenType::IDENTIFIER) {
-            $response->registerAdvancement();
+            $result->registerAdvancement();
             $this->advance();
-            return $response->success(new VarAccessNode($token));
+            return $result->success(new VarAccessNode($token));
         }
         // #12 Priority - Expression between parenthesis
         elseif ($token->type == TokenType::LPAREN) {
-            $response->registerAdvancement();
+            $result->registerAdvancement();
             $this->advance();
-            $expr = $response->register($this->expr());
-            if($response->error != null) {
-                return $response;
+            $expr = $result->register($this->expr());
+            if($result->error != null) {
+                return $result;
             } elseif($this->currentToken->type == TokenType::RPAREN) {
-                $response->registerAdvancement();
+                $result->registerAdvancement();
                 $this->advance();
-                return $response->success($expr);
+                return $result->success($expr);
             } else {
-                return $response->failure(new InvalidSyntaxError(
+                return $result->failure(new InvalidSyntaxError(
                     $this->currentToken->posStart,
                     $this->currentToken->posEnd,
                     "Expected ')' closing parentesis"
                 ));
             }
         }
+        // #13 Priority - If expression
+        elseif ($token->matches(TokenType::KEYWORD, 'if')) {
+            $ifExpr = $result->register($this->ifExpr());
+            if($result->error != null) {
+                return $result;
+            } else {
+                return $result->success($ifExpr);
+            }
+        }
         // ERROR - if token order does not match grammar, throw an error
         else {
-            return $response->failure(new InvalidSyntaxError(
+            return $result->failure(new InvalidSyntaxError(
                 $token->posStart,
                 $token->posEnd,
                 "Expected '+', '-', 'IDENTIFIER', '(' 'INT' or 'FLOAT'"
             ));
         }
+    }
+
+    private function ifExpr()
+    {
+        $result = new ParseResult();
+        $cases = [];
+        $elseCase = null;
+
+        if(!$this->currentToken->matches(TokenType::KEYWORD, 'if')) {
+            return $result->failure(new InvalidSyntaxError(
+                $this->currentToken->posStart,
+                $this->currentToken->posEnd,
+                "Expected 'if' keyword"
+            ));
+        }
+
+        $result->registerAdvancement();
+        $this->advance();
+
+        $condition = $result->register($this->expr());
+        if(!is_null($result->error)) {
+            return $result;
+        }
+
+        if(!$this->currentToken->matches(TokenType::KEYWORD, 'then')) {
+            return $result->failure(new InvalidSyntaxError(
+                $this->currentToken->posStart,
+                $this->currentToken->posEnd,
+                "Expected 'then' keyword after 'if'"
+            ));
+        }
+
+        $result->registerAdvancement();
+        $this->advance();
+
+        $expr = $result->register($this->expr());
+        if(!is_null($result->error)) {
+            return $result;
+        }
+        array_push($cases, [$condition, $expr]);
+
+        while ($this->currentToken->matches(TokenType::KEYWORD, 'elseif')) {
+            $result->registerAdvancement();
+            $this->advance();
+
+            $condition = $result->register($this->expr());
+            if(!is_null($result->error)) {
+                return $result;
+            }
+
+            if(!$this->currentToken->matches(TokenType::KEYWORD, 'then')) {
+                return $result->failure(new InvalidSyntaxError(
+                    $this->currentToken->posStart,
+                    $this->currentToken->posEnd,
+                    "Expected 'then' keyword after 'elseif'"
+                ));
+            }
+
+            $result->registerAdvancement();
+            $this->advance();
+
+            $expr = $result->register($this->expr());
+            if(!is_null($result->error)) {
+                return $result;
+            }
+            array_push($cases, [$condition, $expr]);
+        }
+
+        if($this->currentToken->matches(TokenType::KEYWORD, 'else')) {
+            $result->registerAdvancement();
+            $this->advance();
+
+            $expr = $result->register($this->expr());
+            if(!is_null($result->error)) {
+                return $result;
+            }
+            $elseCase = $expr;
+        }
+
+        return $result->success(new IfNode($cases, $elseCase));
     }
 
     private function getBinaryOperation(callable $funcA, array $operators, ?callable $funcB = null)
@@ -246,27 +336,27 @@ class Parser
             $funcB = $funcA;
         }
 
-        $response = new ParseResult();
-        $left = $response->register($funcA());
+        $result = new ParseResult();
+        $left = $result->register($funcA());
 
-        if($response->error != null) {
-            return $response;
+        if($result->error != null) {
+            return $result;
         }
         while(
             in_array($this->currentToken->type, $operators) ||
             in_array([$this->currentToken->type, $this->currentToken->value], $operators)
         ) {
             $opToken = $this->currentToken;
-            $response->registerAdvancement();
+            $result->registerAdvancement();
             $this->advance();
-            $right = $response->register($funcB());
-            if($response->error != null) {
-                return $response;
+            $right = $result->register($funcB());
+            if($result->error != null) {
+                return $result;
             } else {
                 $left = new BinOpNode($left, $opToken, $right);
             }
         }
 
-        return $response->success($left);
+        return $result->success($left);
     }
 }
