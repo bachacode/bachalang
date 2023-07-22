@@ -14,11 +14,12 @@ class Lexer
 
     public function __construct(
         private string $fn,
-        private string $text = '',
+        private string $text,
         private ?string $currentChar = null,
         public ?string $error = null
     ) {
         $this->pos = new Position(-1, 0, -1, $fn, $this->text);
+        $this->advance();
     }
 
     public function setText(string $text): void
@@ -61,6 +62,8 @@ class Lexer
                 array_push($tokens, $this->makeLessThan());
             } elseif($this->currentChar == '>') {
                 array_push($tokens, $this->makeGreaterThan());
+            } elseif($this->currentChar == '&' || $this->currentChar == '|') {
+                array_push($tokens, $this->makeKeyword());
             } else {
                 $posStart = $this->pos->copy();
                 $char = $this->currentChar;
@@ -74,6 +77,40 @@ class Lexer
         }
         array_push($tokens, new Token(TokenType::EOF, $this->pos));
         return $tokens;
+    }
+
+    private function makeKeyword()
+    {
+        $keywordValue = $this->currentChar;
+        $posStart = $this->pos->copy();
+
+        $this->advance();
+
+        if($this->currentChar == null || !str_contains('&|', $this->currentChar)) {
+            $this->error = "ERROR: ".(string) new IllegalCharError(
+                $posStart,
+                $this->pos,
+                "Expected >> '&' or '|' after {$this->currentChar}"
+            ) . PHP_EOL;
+        }
+
+        if($this->currentChar == null || !str_contains('&|', $this->currentChar)) {
+            $this->error = "ERROR: ".(string) new IllegalCharError(
+                $posStart,
+                $this->pos,
+                "Expected >> '&' or '|' after {$this->currentChar}"
+            ) . PHP_EOL;
+        }
+
+        if($this->currentChar != null && str_contains('&', $this->currentChar)) {
+            $keywordValue .= $this->currentChar;
+            $this->advance();
+            return new Token(TokenType::KEYWORD, $posStart, $this->pos, $keywordValue);
+        } else {
+            $keywordValue .= $this->currentChar;
+            $this->advance();
+            return new Token(TokenType::KEYWORD, $posStart, $this->pos, $keywordValue);
+        }
     }
 
     private function makeIdentifier(): Token

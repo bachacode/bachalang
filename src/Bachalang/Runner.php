@@ -15,14 +15,14 @@ class Runner
     public function __construct()
     {
         // Create lexer - Used to convert plain text into tokens
-        $this->lexer = new Lexer('<stdin>');
+
 
         // Create Global Symbol Table - Keep track of variables
         $this->globalSymbolTable = new SymbolTable();
         $this->globalSymbolTable->set('null', 0);
 
         // Create Parser - Used to convert tokens into an Abstract Syntax Tree
-        $this->parser = new Parser();
+
 
         // Interpreter - used to translate the Abstract Syntax Tree into human readable behaviour
         $this->interpreter = new Interpreter();
@@ -37,16 +37,20 @@ class Runner
     public function run(string $text)
     {
         // Read text and make tokens with it
-        $this->lexer->setText($text);
+        $this->lexer = new Lexer('<stdin>', $text);
+        // $this->lexer->setText($text);
         $tokens = $this->lexer->makeTokens();
 
         // Check for InvalidSyntaxErrors
         if($this->lexer->error != null) {
-            return $this->lexer->error;
+            $error = $this->lexer->error;
+            $this->lexer->error = null;
+            return $error;
         }
 
         // Read tokens and make AST with them
-        $this->parser->setTokens($tokens);
+        $this->parser = new Parser($tokens);
+        // $this->parser->setTokens($tokens);
         $ast = $this->parser->run();
 
         // Check for InvalidSyntaxErrors

@@ -23,6 +23,7 @@ class Parser
         private int $tokenIndex = 0,
         private ?Token $currentToken = null
     ) {
+        $this->currentToken = $this->tokens[$this->tokenIndex];
     }
 
     public function setTokens(array $tokens)
