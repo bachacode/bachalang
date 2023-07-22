@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bachalang;
 
+use Bachalang\Errors\ExpectedCharError;
 use Bachalang\Errors\IllegalCharError;
 
 class Lexer
@@ -63,7 +64,7 @@ class Lexer
             } elseif($this->currentChar == '>') {
                 array_push($tokens, $this->makeGreaterThan());
             } elseif($this->currentChar == '&' || $this->currentChar == '|') {
-                array_push($tokens, $this->makeKeyword());
+                array_push($tokens, $this->makeCompExprToken());
             } else {
                 $posStart = $this->pos->copy();
                 $char = $this->currentChar;
@@ -79,38 +80,24 @@ class Lexer
         return $tokens;
     }
 
-    private function makeKeyword()
+    private function makeCompExprToken()
     {
         $keywordValue = $this->currentChar;
         $posStart = $this->pos->copy();
 
         $this->advance();
 
-        if($this->currentChar == null || !str_contains('&|', $this->currentChar)) {
-            $this->error = "ERROR: ".(string) new IllegalCharError(
+        if($this->currentChar == null || !str_contains($this->currentChar, $keywordValue)) {
+            $this->error = "ERROR: ".(string) new ExpectedCharError(
                 $posStart,
                 $this->pos,
-                "Expected >> '&' or '|' after {$this->currentChar}"
+                "The following character is not permited >> '{$this->currentChar}' after '{$keywordValue}'"
             ) . PHP_EOL;
         }
+        $keywordValue .= $this->currentChar;
+        $this->advance();
+        return new Token(TokenType::KEYWORD, $posStart, $this->pos, $keywordValue);
 
-        if($this->currentChar == null || !str_contains('&|', $this->currentChar)) {
-            $this->error = "ERROR: ".(string) new IllegalCharError(
-                $posStart,
-                $this->pos,
-                "Expected >> '&' or '|' after {$this->currentChar}"
-            ) . PHP_EOL;
-        }
-
-        if($this->currentChar != null && str_contains('&', $this->currentChar)) {
-            $keywordValue .= $this->currentChar;
-            $this->advance();
-            return new Token(TokenType::KEYWORD, $posStart, $this->pos, $keywordValue);
-        } else {
-            $keywordValue .= $this->currentChar;
-            $this->advance();
-            return new Token(TokenType::KEYWORD, $posStart, $this->pos, $keywordValue);
-        }
     }
 
     private function makeIdentifier(): Token

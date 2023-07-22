@@ -55,6 +55,7 @@ class Runner
 
         // Check for InvalidSyntaxErrors
         if($ast->error != null) {
+            var_dump($tokens) . PHP_EOL;
             return $ast->error;
         }
 
