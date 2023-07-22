@@ -26,7 +26,7 @@ class Token
         }
     }
 
-    public function matches(TokenType $type, string $value): bool
+    public function matches(TokenType $type, ?string $value): bool
     {
         return $this->type == $type && $this->value == $value;
     }
