@@ -7,9 +7,9 @@ namespace Bachalang;
 class Context
 {
     public function __construct(
-        public $displayName,
-        public $parent = null,
-        public $parentEntryPos = null,
+        public string $displayName,
+        public ?Context $parent = null,
+        public ?Position $parentEntryPos = null,
         public ?SymbolTable $symbolTable = null
     ) {
     }

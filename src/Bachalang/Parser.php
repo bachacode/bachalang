@@ -10,6 +10,7 @@ use Bachalang\Nodes\NumberNode;
 use Bachalang\Nodes\UnaryOpNode;
 use Bachalang\Nodes\VarAccessNode;
 use Bachalang\Nodes\VarAssignNode;
+use JetBrains\PhpStorm\ArrayShape;
 
 class Parser
 {
@@ -18,10 +19,16 @@ class Parser
      */
 
     public function __construct(
-        public array $tokens,
-        public int $tokenIndex = 0,
-        public ?Token $currentToken = null
+        private array $tokens = [],
+        private int $tokenIndex = 0,
+        private ?Token $currentToken = null
     ) {
+    }
+
+    public function setTokens(array $tokens)
+    {
+        $this->tokenIndex = 0;
+        $this->tokens = $tokens;
         $this->currentToken = $this->tokens[$this->tokenIndex];
     }
 

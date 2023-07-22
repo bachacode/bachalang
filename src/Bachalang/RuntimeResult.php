@@ -10,23 +10,23 @@ class RuntimeResult
 {
     public function __construct(
         public ?RuntimeError $error = null,
-        public $value = null,
+        public $result = null,
     ) {
     }
 
     public function register($res)
     {
         if($res->error === null) {
-            return $res->value;
+            return $res->result;
         } else {
             $this->error = $res->error;
             return $res;
         }
     }
 
-    public function success($value)
+    public function success($result)
     {
-        $this->value = $value;
+        $this->result = $result;
         return $this;
     }
 

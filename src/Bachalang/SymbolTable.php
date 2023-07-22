@@ -14,7 +14,7 @@ class SymbolTable
     ) {
     }
 
-    public function get(string $name): Number
+    public function get(string $name): ?Number
     {
         $value = $this->symbols[$name] ?? null;
 
@@ -25,12 +25,12 @@ class SymbolTable
         }
     }
 
-    public function set($name, $value)
+    public function set(string $name, mixed $value): void
     {
         $this->symbols[$name] = $value;
     }
 
-    public function remove($name)
+    public function remove(string $name): void
     {
         unset($this->symbols[$name]);
     }

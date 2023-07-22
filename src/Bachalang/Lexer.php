@@ -14,12 +14,17 @@ class Lexer
 
     public function __construct(
         private string $fn,
-        private string $text,
+        private string $text = '',
         private ?string $currentChar = null,
         public ?string $error = null
     ) {
-
         $this->pos = new Position(-1, 0, -1, $fn, $this->text);
+    }
+
+    public function setText(string $text): void
+    {
+        $this->pos = new Position(-1, 0, -1, $this->fn, $this->text);
+        $this->text = $text;
         $this->advance();
     }
 
@@ -33,7 +38,7 @@ class Lexer
         }
     }
 
-    public function makeTokens(): string|array
+    public function makeTokens(): array
     {
         $tokens = [];
 
@@ -71,7 +76,7 @@ class Lexer
         return $tokens;
     }
 
-    private function makeIdentifier()
+    private function makeIdentifier(): Token
     {
         $idStr = '';
         $posStart = $this->pos->copy();
@@ -112,16 +117,13 @@ class Lexer
 
     private function getTokenType(TokenType $firstType, TokenType $secondType): Token
     {
-        $tokenValue = $this->currentChar;
         $posStart = $this->pos->copy();
-
         $this->advance();
         if($this->currentChar != null && str_contains('=', $this->currentChar)) {
-            $tokenValue .= $this->currentChar;
             $this->advance();
-            return new Token($firstType, $posStart, $this->pos, $tokenValue);
+            return new Token($firstType, $posStart, $this->pos);
         } else {
-            return new Token($secondType, $posStart, $this->pos, $tokenValue);
+            return new Token($secondType, $posStart, $this->pos);
         }
     }
 
