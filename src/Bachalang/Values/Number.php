@@ -11,7 +11,7 @@ use Bachalang\Position;
 class Number
 {
     public function __construct(
-        public int|float $value,
+        public int|float|bool $value,
         private ?Position $posStart = null,
         private ?Position $posEnd = null,
         private ?Context $context = null
@@ -60,6 +60,51 @@ class Number
     public function powBy(Number $other): Number|RuntimeError
     {
         return (new Number($this->value ** $other->value))->setContext($this->context);
+    }
+
+    public function getComparisonEq(Number $other): Number|RuntimeError
+    {
+        return (new Number($this->value == $other->value ? 1 : 0))->setContext($this->context);
+    }
+
+    public function getComparisonNe(Number $other): Number|RuntimeError
+    {
+        return (new Number($this->value != $other->value ? 1 : 0))->setContext($this->context);
+    }
+
+    public function getComparisonLt(Number $other): Number|RuntimeError
+    {
+        return (new Number($this->value < $other->value ? 1 : 0))->setContext($this->context);
+    }
+
+    public function getComparisonGt(Number $other): Number|RuntimeError
+    {
+        return (new Number($this->value > $other->value ? 1 : 0))->setContext($this->context);
+    }
+
+    public function getComparisonLte(Number $other): Number|RuntimeError
+    {
+        return (new Number($this->value <= $other->value ? 1 : 0))->setContext($this->context);
+    }
+
+    public function getComparisonGte(Number $other): Number|RuntimeError
+    {
+        return (new Number($this->value >= $other->value ? 1 : 0))->setContext($this->context);
+    }
+
+    public function andWith(Number $other): Number|RuntimeError
+    {
+        return (new Number($this->value && $other->value ? 1 : 0))->setContext($this->context);
+    }
+
+    public function orWith(Number $other): Number|RuntimeError
+    {
+        return (new Number($this->value || $other->value ? 1 : 0))->setContext($this->context);
+    }
+
+    public function invert(): Number|RuntimeError
+    {
+        return (new Number($this->value ? 0 : 1))->setContext($this->context);
     }
 
     public function __toString(): string

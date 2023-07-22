@@ -44,7 +44,7 @@ class Lexer
     {
         $tokens = [];
 
-        while ($this->currentChar != null) {
+        while ($this->currentChar != null && $this->error == null) {
             if(ctype_space($this->currentChar)) {
                 $this->advance();
             } elseif (str_contains(LETTERS, $this->currentChar)) {
@@ -80,7 +80,7 @@ class Lexer
         return $tokens;
     }
 
-    private function makeCompExprToken()
+    private function makeCompExprToken(): Token
     {
         $keywordValue = $this->currentChar;
         $posStart = $this->pos->copy();

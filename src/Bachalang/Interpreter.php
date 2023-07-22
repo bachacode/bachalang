@@ -85,17 +85,18 @@ class Interpreter
         }
         $right = $response->register($this->visit($node->rightNode, $context));
 
-        if($node->opNode->type == TokenType::PLUS) {
-            $result = $left->addedTo($right);
-        } elseif($node->opNode->type == TokenType::MINUS) {
-            $result = $left->substractedBy($right);
-        } elseif($node->opNode->type == TokenType::MUL) {
-            $result = $left->multipliedBy($right);
-        } elseif($node->opNode->type == TokenType::DIV) {
-            $result = $left->dividedBy($right);
-        } elseif($node->opNode->type == TokenType::POW) {
-            $result = $left->powBy($right);
+        $operationType = $node->opNode->type;
+
+        if ($operationType->checkOperator()) {
+
+            $operationMethod = $operationType->getOperator();
+            $result = call_user_func_array([$left, $operationMethod], [$right]);
+        } elseif ($node->opNode->matches(TokenType::KEYWORD, '&&')) {
+            $result = $left->andWith($right);
+        } elseif ($node->opNode->matches(TokenType::KEYWORD, '||')) {
+            $result = $left->orWith($right);
         }
+
         if($result instanceof RuntimeError) {
             return $response->failure($result);
         } else {
@@ -111,9 +112,12 @@ class Interpreter
             return $response;
         }
 
-        if($node->opToken == TokenType::MINUS) {
+        if($node->opToken->type == TokenType::MINUS) {
             $number = $number->multipliedBy(new Number(-1));
+        } elseif($node->opToken->type == TokenType::NOT) {
+            $number = $number->invert();
         }
+
         if($number instanceof RuntimeError) {
             return $response->failure($number);
         } else {

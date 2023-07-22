@@ -20,7 +20,8 @@ class Runner
         // Create Global Symbol Table - Keep track of variables
         $this->globalSymbolTable = new SymbolTable();
         $this->globalSymbolTable->set('null', 0);
-
+        $this->globalSymbolTable->set('true', 1);
+        $this->globalSymbolTable->set('false', 0);
         // Create Parser - Used to convert tokens into an Abstract Syntax Tree
 
 
@@ -42,7 +43,7 @@ class Runner
         $tokens = $this->lexer->makeTokens();
 
         // Check for InvalidSyntaxErrors
-        if($this->lexer->error != null) {
+        if(!is_null($this->lexer->error)) {
             $error = $this->lexer->error;
             $this->lexer->error = null;
             return $error;
@@ -54,15 +55,14 @@ class Runner
         $ast = $this->parser->run();
 
         // Check for InvalidSyntaxErrors
-        if($ast->error != null) {
+        if(!is_null($ast->error)) {
             return $ast->error;
         }
-
         // Visit every node of the AST and return a Runtime Result;
         $runtime = $this->interpreter->visit($ast->node, $this->context);
 
         // Check for RuntimeErrors
-        if($runtime->error != null) {
+        if(!is_null($runtime->error)) {
             return $runtime->error;
         }
 
