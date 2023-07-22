@@ -41,13 +41,13 @@ class Interpreter
         );
     }
 
-    private function visitVarAccessNode(VarAccessNode $node, Context $context)
+    private function visitVarAccessNode(VarAccessNode $node, Context $context): RuntimeError|RuntimeResult
     {
         $response = new RuntimeResult();
         $varName = $node->varNameToken->value;
         $value = $context->symbolTable->get($varName);
 
-        if($value == null && $value != 0) {
+        if(is_null($value)) {
             return $response->failure(
                 new RuntimeError(
                     $node->posStart,
@@ -62,7 +62,7 @@ class Interpreter
         }
     }
 
-    private function visitVarAssignNode(VarAssignNode $node, Context $context)
+    private function visitVarAssignNode(VarAssignNode $node, Context $context): RuntimeResult
     {
         $response = new RuntimeResult();
         $varName = $node->varNameToken->value;
@@ -80,7 +80,7 @@ class Interpreter
     {
         $response = new RuntimeResult();
         $left = $response->register($this->visit($node->leftNode, $context));
-        if($response->error != null) {
+        if(!is_null($response->error)) {
             return $response;
         }
         $right = $response->register($this->visit($node->rightNode, $context));
@@ -107,7 +107,7 @@ class Interpreter
     {
         $response = new RuntimeResult();
         $number = $response->register($this->visit($node->node, $context));
-        if($response->error != null) {
+        if(!is_null($response->error)) {
             return $response;
         }
 
