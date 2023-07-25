@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Bachalang;
 
 use Bachalang\Errors\RuntimeError;
+use Bachalang\Values\Number;
 
 class RuntimeResult
 {

@@ -117,6 +117,13 @@ class Number
         return "{$this->value}";
     }
 
+    public function __get($nombrePropiedad)
+    {
+        if ($nombrePropiedad === "propiedad") {
+            return $this->propiedad;
+        }
+    }
+
     public function copy(): Number
     {
         $copy = new Number($this->value);

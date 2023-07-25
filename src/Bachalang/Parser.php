@@ -6,11 +6,13 @@ namespace Bachalang;
 
 use Bachalang\Errors\InvalidSyntaxError;
 use Bachalang\Nodes\BinOpNode;
+use Bachalang\Nodes\ForNode;
 use Bachalang\Nodes\IfNode;
 use Bachalang\Nodes\NumberNode;
 use Bachalang\Nodes\UnaryOpNode;
 use Bachalang\Nodes\VarAccessNode;
 use Bachalang\Nodes\VarAssignNode;
+use Bachalang\Nodes\WhileNode;
 
 class Parser
 {
@@ -240,6 +242,24 @@ class Parser
                 return $result->success($ifExpr);
             }
         }
+        // #14 Priority - For expression
+        elseif ($token->matches(TokenType::KEYWORD, 'for')) {
+            $forExpr = $result->register($this->forExpr());
+            if($result->error != null) {
+                return $result;
+            } else {
+                return $result->success($forExpr);
+            }
+        }
+        // #15 Priority - For expression
+        elseif ($token->matches(TokenType::KEYWORD, 'while')) {
+            $whileExpr = $result->register($this->whileExpr());
+            if($result->error != null) {
+                return $result;
+            } else {
+                return $result->success($whileExpr);
+            }
+        }
         // ERROR - if token order does not match grammar, throw an error
         else {
             return $result->failure(new InvalidSyntaxError(
@@ -328,6 +348,135 @@ class Parser
         }
 
         return $result->success(new IfNode($cases, $elseCase));
+    }
+
+    private function forExpr()
+    {
+        $result = new ParseResult();
+
+        if(!$this->currentToken->matches(TokenType::KEYWORD, 'for')) {
+            return $result->failure(new InvalidSyntaxError(
+                $this->currentToken->posStart,
+                $this->currentToken->posEnd,
+                "Expected 'for' keyword"
+            ));
+        }
+
+        $result->registerAdvancement();
+        $this->advance();
+
+        if($this->currentToken->type != TokenType::IDENTIFIER) {
+            return $result->failure(new InvalidSyntaxError(
+                $this->currentToken->posStart,
+                $this->currentToken->posEnd,
+                "Expected indentifier"
+            ));
+        }
+
+        $varName = $this->currentToken;
+        $result->registerAdvancement();
+        $this->advance();
+
+        if($this->currentToken->type != TokenType::EQUALS) {
+            return $result->failure(new InvalidSyntaxError(
+                $this->currentToken->posStart,
+                $this->currentToken->posEnd,
+                "Expected '=' after 'identifier'"
+            ));
+        }
+
+        $result->registerAdvancement();
+        $this->advance();
+
+        $startValue = $result->register($this->expr());
+        if(!is_null($result->error)) {
+            return $result;
+        }
+
+        if(!$this->currentToken->matches(TokenType::KEYWORD, 'to')) {
+            return $result->failure(new InvalidSyntaxError(
+                $this->currentToken->posStart,
+                $this->currentToken->posEnd,
+                "Expected 'to' after '='"
+            ));
+        }
+
+        $result->registerAdvancement();
+        $this->advance();
+
+        $endValue = $result->register($this->expr());
+        if(!is_null($result->error)) {
+            return $result;
+        }
+
+        if($this->currentToken->matches(TokenType::KEYWORD, 'step')) {
+            $result->registerAdvancement();
+            $this->advance();
+
+            $stepValue = $result->register($this->expr());
+            if(!is_null($result->error)) {
+                return $result;
+            }
+        } else {
+            $stepValue = null;
+        }
+
+        if(!$this->currentToken->matches(TokenType::KEYWORD, 'then')) {
+            return $result->failure(new InvalidSyntaxError(
+                $this->currentToken->posStart,
+                $this->currentToken->posEnd,
+                "Expected 'then' after expression"
+            ));
+        }
+
+        $result->registerAdvancement();
+        $this->advance();
+
+        $bodyNode = $result->register($this->expr());
+        if(!is_null($result->error)) {
+            return $result;
+        }
+
+        return $result->success(new ForNode($varName, $startValue, $endValue, $stepValue, $bodyNode));
+    }
+
+    private function whileExpr()
+    {
+        $result = new ParseResult();
+
+        if(!$this->currentToken->matches(TokenType::KEYWORD, 'while')) {
+            return $result->failure(new InvalidSyntaxError(
+                $this->currentToken->posStart,
+                $this->currentToken->posEnd,
+                "Expected 'while' keyword"
+            ));
+        }
+
+        $result->registerAdvancement();
+        $this->advance();
+
+        $condition = $result->register($this->expr());
+        if(!is_null($result->error)) {
+            return $result;
+        }
+
+        if(!$this->currentToken->matches(TokenType::KEYWORD, 'then')) {
+            return $result->failure(new InvalidSyntaxError(
+                $this->currentToken->posStart,
+                $this->currentToken->posEnd,
+                "Expected 'then' keyword after expression"
+            ));
+        }
+
+        $result->registerAdvancement();
+        $this->advance();
+
+        $bodyNode = $result->register($this->expr());
+        if(!is_null($result->error)) {
+            return $result;
+        }
+
+        return $result->success(new WhileNode($condition, $bodyNode));
     }
 
     private function getBinaryOperation(callable $funcA, array $operators, ?callable $funcB = null)

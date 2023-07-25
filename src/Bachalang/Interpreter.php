@@ -6,12 +6,14 @@ namespace Bachalang;
 
 use Bachalang\Errors\RuntimeError;
 use Bachalang\Nodes\BinOpNode;
+use Bachalang\Nodes\ForNode;
 use Bachalang\Nodes\IfNode;
 use Bachalang\Nodes\Node;
 use Bachalang\Nodes\NumberNode;
 use Bachalang\Nodes\UnaryOpNode;
 use Bachalang\Nodes\VarAccessNode;
 use Bachalang\Nodes\VarAssignNode;
+use Bachalang\Nodes\WhileNode;
 use Bachalang\Values\Number;
 use Exception;
 
@@ -152,6 +154,74 @@ class Interpreter
             return $response->success($elseValue);
         }
 
+        return $response->success(null);
+    }
+
+    private function visitForNode(ForNode $node, Context $context): RuntimeResult
+    {
+        $response = new RuntimeResult();
+
+        $startValue = $response->register($this->visit($node->startValueNode, $context));
+        if(!is_null($response->error)) {
+            return $response;
+        }
+        $endValue = $response->register($this->visit($node->endValueNode, $context));
+        if(!is_null($response->error)) {
+            return $response;
+        }
+
+        if(!is_null($node->stepValueNode)) {
+            $stepValue = $response->register($this->visit($node->stepValueNode, $context));
+            if(!is_null($response->error)) {
+                return $response;
+            }
+        } else {
+            $stepValue = new Number(1);
+        }
+
+        $i = $startValue->value;
+
+        if($stepValue->value >= 0) {
+            $condition = function () use ($i, $endValue) {
+                return $i < $endValue->value;
+            };
+        } else {
+            $condition = function () use ($i, $endValue) {
+                return $i > $endValue->value;
+            };
+        }
+
+        while($i < $endValue->value) {
+            $context->symbolTable->set($node->varNameToken->value, new Number($i));
+            $i += $stepValue->value;
+
+            $response->register($this->visit($node->bodyNode, $context));
+            if(!is_null($response->error)) {
+                return $response;
+            }
+
+        }
+        return $response->success(null);
+    }
+
+    private function visitWhileNode(WhileNode $node, Context $context): RuntimeError|RuntimeResult
+    {
+        $response = new RuntimeResult();
+
+        while (true) {
+            $condition = $response->register($this->visit($node->conditionNode, $context));
+            if(!is_null($response->error)) {
+                return $response;
+            }
+
+            if(!$condition->isTrue()) {
+                break;
+            }
+            $response->register($this->visit($node->bodyNode, $context));
+            if(!is_null($response->error)) {
+                return $response;
+            }
+        }
         return $response->success(null);
     }
 }

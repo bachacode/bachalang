@@ -27,7 +27,7 @@ class SymbolTable
 
     public function set(string $name, mixed $value): void
     {
-        $this->symbols[$name] = new Number($value);
+        $this->symbols[$name] = $value;
     }
 
     public function remove(string $name): void
