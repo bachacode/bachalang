@@ -4,102 +4,130 @@ declare(strict_types=1);
 
 namespace Bachalang\Values;
 
-use Bachalang\Context;
 use Bachalang\Errors\RuntimeError;
-use Bachalang\Position;
 
-class Number
+class Number extends Value
 {
-    public function __construct(
-        public int|float|bool $value,
-        private ?Position $posStart = null,
-        private ?Position $posEnd = null,
-        private ?Context $context = null
-    ) {
-        $this->setPosition();
-        $this->setContext();
-    }
-
-    public function setPosition(?Position $posStart = null, ?Position $posEnd = null): self
+    public function addedTo(Value $other): Number | RuntimeError
     {
-        $this->posStart = $posStart;
-        $this->posEnd = $posEnd;
-        return $this;
-    }
-
-    public function setContext(Context $context = null): self
-    {
-        $this->context = $context;
-        return $this;
-    }
-
-    public function addedTo(Number $other): Number
-    {
-        return (new Number($this->value + $other->value))->setContext($this->context);
-    }
-
-    public function substractedBy(Number $other): Number
-    {
-        return (new Number($this->value - $other->value))->setContext($this->context);
-    }
-
-    public function multipliedBy(Number $other): Number
-    {
-        return (new Number($this->value * $other->value))->setContext($this->context);
-    }
-
-    public function dividedBy(Number $other): Number|RuntimeError
-    {
-        if($other->value == 0) {
-            return new RuntimeError($other->posStart, $other->posEnd, 'Division by zero is not allowed', $this->context);
+        if($other instanceof Number) {
+            return (new Number($this->value + $other->value))->setContext($this->context);
         } else {
-            return (new Number($this->value / $other->value))->setContext($this->context);
+            return $this->illegalOperation($other);
         }
     }
 
-    public function powBy(Number $other): Number|RuntimeError
+    public function substractedBy(Value $other): Number | RuntimeError
     {
-        return (new Number($this->value ** $other->value))->setContext($this->context);
+        if($other instanceof Number) {
+            return (new Number($this->value - $other->value))->setContext($this->context);
+        } else {
+            return $this->illegalOperation($other);
+        }
     }
 
-    public function getComparisonEq(Number $other): Number|RuntimeError
+    public function multipliedBy(Value $other): Number | RuntimeError
     {
-        return (new Number($this->value == $other->value ? 1 : 0))->setContext($this->context);
+        if($other instanceof Number) {
+            return (new Number($this->value * $other->value))->setContext($this->context);
+        } else {
+            return $this->illegalOperation($other);
+        }
     }
 
-    public function getComparisonNe(Number $other): Number|RuntimeError
+    public function dividedBy(Value $other): Number|RuntimeError
     {
-        return (new Number($this->value != $other->value ? 1 : 0))->setContext($this->context);
+
+        if($other instanceof Number) {
+            if($other->value == 0) {
+                return new RuntimeError($other->posStart, $other->posEnd, 'Division by zero is not allowed', $this->context);
+            } else {
+                return (new Number($this->value / $other->value))->setContext($this->context);
+            }
+        } else {
+            return $this->illegalOperation($other);
+        }
     }
 
-    public function getComparisonLt(Number $other): Number|RuntimeError
+    public function powBy(Value $other): Number|RuntimeError
     {
-        return (new Number($this->value < $other->value ? 1 : 0))->setContext($this->context);
+        if($other instanceof Number) {
+            return (new Number($this->value ** $other->value))->setContext($this->context);
+        } else {
+            return $this->illegalOperation($other);
+        }
     }
 
-    public function getComparisonGt(Number $other): Number|RuntimeError
+    public function getComparisonEq(Value $other): Number|RuntimeError
     {
-        return (new Number($this->value > $other->value ? 1 : 0))->setContext($this->context);
+        if($other instanceof Number) {
+            return (new Number($this->value == $other->value ? 1 : 0))->setContext($this->context);
+        } else {
+            return $this->illegalOperation($other);
+        }
     }
 
-    public function getComparisonLte(Number $other): Number|RuntimeError
+    public function getComparisonNe(Value $other): Number|RuntimeError
     {
-        return (new Number($this->value <= $other->value ? 1 : 0))->setContext($this->context);
+        if($other instanceof Number) {
+            return (new Number($this->value != $other->value ? 1 : 0))->setContext($this->context);
+        } else {
+            return $this->illegalOperation($other);
+        }
     }
 
-    public function getComparisonGte(Number $other): Number|RuntimeError
+    public function getComparisonLt(Value $other): Number|RuntimeError
     {
-        return (new Number($this->value >= $other->value ? 1 : 0))->setContext($this->context);
+        if($other instanceof Number) {
+            return (new Number($this->value < $other->value ? 1 : 0))->setContext($this->context);
+        } else {
+            return $this->illegalOperation($other);
+        }
     }
 
-    public function andWith(Number $other): Number|RuntimeError
+    public function getComparisonGt(Value $other): Number|RuntimeError
     {
-        return (new Number($this->value && $other->value ? 1 : 0))->setContext($this->context);
+        if($other instanceof Number) {
+            return (new Number($this->value > $other->value ? 1 : 0))->setContext($this->context);
+        } else {
+            return $this->illegalOperation($other);
+        }
     }
 
-    public function orWith(Number $other): Number|RuntimeError
+    public function getComparisonLte(Value $other): Number|RuntimeError
     {
-        return (new Number($this->value || $other->value ? 1 : 0))->setContext($this->context);
+        if($other instanceof Number) {
+            return (new Number($this->value <= $other->value ? 1 : 0))->setContext($this->context);
+        } else {
+            return $this->illegalOperation($other);
+        }
+    }
+
+    public function getComparisonGte(Value $other): Number|RuntimeError
+    {
+        if($other instanceof Number) {
+            return (new Number($this->value >= $other->value ? 1 : 0))->setContext($this->context);
+        } else {
+            return $this->illegalOperation($other);
+        }
+    }
+
+    public function andWith(Value $other): Number|RuntimeError
+    {
+        if($other instanceof Number) {
+            return (new Number($this->value && $other->value ? 1 : 0))->setContext($this->context);
+        } else {
+            return $this->illegalOperation($other);
+        }
+    }
+
+    public function orWith(Value $other): Number|RuntimeError
+    {
+        if($other instanceof Number) {
+            return (new Number($this->value || $other->value ? 1 : 0))->setContext($this->context);
+        } else {
+            return $this->illegalOperation($other);
+        }
     }
 
     public function invert(): Number|RuntimeError

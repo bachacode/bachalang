@@ -25,6 +25,8 @@ enum TokenType: string
     case GT = 'GT';
     case LTE = 'LTE';
     case GTE = 'GTE';
+    case COMMA = 'COMMA';
+    case ARROW = 'ARROW';
     case EOF = 'EOF';
 
     public static function getToken(string $char): TokenType
@@ -37,6 +39,7 @@ enum TokenType: string
             '^' => TokenType::POW,
             '(' => TokenType::LPAREN,
             ')' => TokenType::RPAREN,
+            ',' => TokenType::COMMA,
         };
     }
 

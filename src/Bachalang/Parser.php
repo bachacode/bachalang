@@ -6,7 +6,9 @@ namespace Bachalang;
 
 use Bachalang\Errors\InvalidSyntaxError;
 use Bachalang\Nodes\BinOpNode;
+use Bachalang\Nodes\CallNode;
 use Bachalang\Nodes\ForNode;
+use Bachalang\Nodes\FuncDefNode;
 use Bachalang\Nodes\IfNode;
 use Bachalang\Nodes\NumberNode;
 use Bachalang\Nodes\UnaryOpNode;
@@ -109,7 +111,7 @@ class Parser
                 return $result->failure(new InvalidSyntaxError(
                     $this->currentToken->posStart,
                     $this->currentToken->posEnd,
-                    "Expected 'INT', 'FLOAT', 'IDENTIFIER' '+', '-', '(', or '!'"
+                    "Expected 'INT', 'FLOAT', 'IDENTIFIER', 'FOR', 'WHILE', 'FUNCTION', '+', '-', '(', or '!'"
                 ));
             } else {
                 return $result->success($node);
@@ -193,8 +195,61 @@ class Parser
 
     private function power()
     {
-        // #9 Priority - Atomic value
-        return $this->getBinaryOperation(array($this, 'atom'), [TokenType::POW]);
+        // #9 Priority - Callable Function
+        return $this->getBinaryOperation(array($this, 'call'), [TokenType::POW]);
+    }
+
+    private function call()
+    {
+        $result = new ParseResult();
+        $atom = $result->register($this->atom());
+        if(!is_null($result->error)) {
+            return $result;
+        }
+
+        if($this->currentToken->type == TokenType::LPAREN) {
+            $result->registerAdvancement();
+            $this->advance();
+            $argNodes = [];
+
+            if($this->currentToken->type == TokenType::RPAREN) {
+                $result->registerAdvancement();
+                $this->advance();
+            } else {
+                array_push($argNodes, $result->register($this->expr()));
+                if(!is_null($result->error)) {
+                    return $result->failure(new InvalidSyntaxError(
+                        $this->currentToken->posStart,
+                        $this->currentToken->posEnd,
+                        "Expected ')', 'INT', 'FLOAT', 'IDENTIFIER', 'FOR', 'WHILE', 'FUNCTION', '+', '-', '(', or '!'"
+                    ));
+                }
+
+                while ($this->currentToken->type == TokenType::COMMA) {
+                    $result->registerAdvancement();
+                    $this->advance();
+
+                    array_push($argNodes, $result->register($this->expr()));
+                    if(!is_null($result->error)) {
+                        return $result;
+                    }
+                }
+
+                if($this->currentToken->type != TokenType::RPAREN) {
+                    return $result->failure(new InvalidSyntaxError(
+                        $this->currentToken->posStart,
+                        $this->currentToken->posEnd,
+                        "Expected ')' or ','"
+                    ));
+                }
+
+                $result->registerAdvancement();
+                $this->advance();
+
+            }
+            return $result->success(new CallNode($atom, $argNodes));
+        }
+        return $result->success($atom);
     }
 
     private function atom()
@@ -258,6 +313,14 @@ class Parser
                 return $result;
             } else {
                 return $result->success($whileExpr);
+            }
+        } // #15 Priority - For expression
+        elseif ($token->matches(TokenType::KEYWORD, 'function')) {
+            $funcDef = $result->register($this->funcDef());
+            if($result->error != null) {
+                return $result;
+            } else {
+                return $result->success($funcDef);
             }
         }
         // ERROR - if token order does not match grammar, throw an error
@@ -477,6 +540,107 @@ class Parser
         }
 
         return $result->success(new WhileNode($condition, $bodyNode));
+    }
+
+    private function funcDef()
+    {
+        $result = new ParseResult();
+
+        if(!$this->currentToken->matches(TokenType::KEYWORD, 'function')) {
+            return $result->failure(new InvalidSyntaxError(
+                $this->currentToken->posStart,
+                $this->currentToken->posEnd,
+                "Expected 'function' keyword"
+            ));
+        }
+
+        $result->registerAdvancement();
+        $this->advance();
+
+        if($this->currentToken->type == TokenType::IDENTIFIER) {
+            $varNameToken = $this->currentToken;
+            $result->registerAdvancement();
+            $this->advance();
+
+            if($this->currentToken->type != TokenType::LPAREN) {
+                return $result->failure(new InvalidSyntaxError(
+                    $this->currentToken->posStart,
+                    $this->currentToken->posEnd,
+                    "Expected '(' after 'IDENTIFIER'"
+                ));
+            }
+        } else {
+            $varNameToken = null;
+            if($this->currentToken->type != TokenType::LPAREN) {
+                return $result->failure(new InvalidSyntaxError(
+                    $this->currentToken->posStart,
+                    $this->currentToken->posEnd,
+                    "Expected '(' after 'IDENTIFIER'"
+                ));
+            }
+        }
+
+        $result->registerAdvancement();
+        $this->advance();
+
+        $argNameTokens = [];
+
+        if($this->currentToken->type == TokenType::IDENTIFIER) {
+            array_push($argNameTokens, $this->currentToken);
+            $result->registerAdvancement();
+            $this->advance();
+
+            while ($this->currentToken->type == TokenType::COMMA) {
+                $result->registerAdvancement();
+                $this->advance();
+                if($this->currentToken->type != TokenType::IDENTIFIER) {
+                    return $result->failure(new InvalidSyntaxError(
+                        $this->currentToken->posStart,
+                        $this->currentToken->posEnd,
+                        "Expected 'IDENTIFIER'"
+                    ));
+                }
+                array_push($argNameTokens, $this->currentToken);
+                $result->registerAdvancement();
+                $this->advance();
+            }
+
+            if($this->currentToken->type != TokenType::RPAREN) {
+                return $result->failure(new InvalidSyntaxError(
+                    $this->currentToken->posStart,
+                    $this->currentToken->posEnd,
+                    "Expected ',' or ')'"
+                ));
+            }
+        } else {
+            if($this->currentToken->type != TokenType::RPAREN) {
+                return $result->failure(new InvalidSyntaxError(
+                    $this->currentToken->posStart,
+                    $this->currentToken->posEnd,
+                    "Expected 'identifier' or ')'"
+                ));
+            }
+        }
+
+        $result->registerAdvancement();
+        $this->advance();
+
+        if($this->currentToken->type != TokenType::ARROW) {
+            return $result->failure(new InvalidSyntaxError(
+                $this->currentToken->posStart,
+                $this->currentToken->posEnd,
+                "Expected '=>'"
+            ));
+        }
+
+        $result->registerAdvancement();
+        $this->advance();
+        $nodeToReturn = $result->register($this->expr());
+        if(!is_null($result->error)) {
+            return $result;
+        }
+
+        return $result->success(new FuncDefNode($varNameToken, $argNameTokens, $nodeToReturn));
     }
 
     private function getBinaryOperation(callable $funcA, array $operators, ?callable $funcB = null)

@@ -121,7 +121,7 @@ class Lexer
 
     private function makeEquals(): Token
     {
-        return $this->getTokenType(TokenType::EE, TokenType::EQUALS);
+        return $this->getTokenType(TokenType::EE, TokenType::EQUALS, TokenType::ARROW);
     }
 
     private function makeLessThan(): Token
@@ -139,13 +139,15 @@ class Lexer
         return $this->getTokenType(TokenType::NE, TokenType::NOT);
     }
 
-    private function getTokenType(TokenType $firstType, TokenType $secondType): Token
+    private function getTokenType(TokenType $firstType, TokenType $secondType, ?TokenType $thirdType = null): Token
     {
         $posStart = $this->pos->copy();
         $this->advance();
         if($this->currentChar != null && str_contains('=', $this->currentChar)) {
             $this->advance();
             return new Token($firstType, $posStart, $this->pos);
+        } elseif(!is_null($thirdType) && str_contains('>', $this->currentChar)) {
+            return new Token($thirdType, $posStart, $this->pos);
         } else {
             return new Token($secondType, $posStart, $this->pos);
         }
