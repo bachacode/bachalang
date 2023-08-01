@@ -8,7 +8,6 @@ class Runner
 {
     private Lexer $lexer;
     private Parser $parser;
-    private Interpreter $interpreter;
     private SymbolTable $globalSymbolTable;
     private Context $context;
 
@@ -23,10 +22,6 @@ class Runner
         $this->globalSymbolTable->set('true', 1);
         $this->globalSymbolTable->set('false', 0);
         // Create Parser - Used to convert tokens into an Abstract Syntax Tree
-
-
-        // Interpreter - used to translate the Abstract Syntax Tree into human readable behaviour
-        $this->interpreter = new Interpreter();
 
         // Context - In with context is the current code executing
         $this->context = new Context(
@@ -59,7 +54,7 @@ class Runner
             return $ast->error;
         }
         // Visit every node of the AST and return a Runtime Result;
-        $runtime = $this->interpreter->visit($ast->node, $this->context);
+        $runtime = Interpreter::visit($ast->node, $this->context);
 
         // Check for RuntimeErrors
         if(!is_null($runtime->error)) {

@@ -49,7 +49,7 @@ class Lexer
                 $this->advance();
             } elseif (str_contains(LETTERS, $this->currentChar)) {
                 array_push($tokens, $this->makeIdentifier());
-                $this->advance();
+                // $this->advance();
             } elseif (TokenType::checkToken(($this->currentChar))) {
                 array_push($tokens, new Token(TokenType::getToken($this->currentChar), $this->pos));
                 $this->advance();
@@ -147,6 +147,7 @@ class Lexer
             $this->advance();
             return new Token($firstType, $posStart, $this->pos);
         } elseif(!is_null($thirdType) && str_contains('>', $this->currentChar)) {
+            $this->advance();
             return new Token($thirdType, $posStart, $this->pos);
         } else {
             return new Token($secondType, $posStart, $this->pos);

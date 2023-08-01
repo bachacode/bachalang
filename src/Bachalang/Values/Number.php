@@ -4,10 +4,21 @@ declare(strict_types=1);
 
 namespace Bachalang\Values;
 
+use Bachalang\Context;
 use Bachalang\Errors\RuntimeError;
+use Bachalang\Position;
 
 class Number extends Value
 {
+    public function __construct(
+        public mixed $value,
+        ?Position $posStart = null,
+        ?Position $posEnd = null,
+        ?Context $context = null,
+    ) {
+        parent::__construct($posStart, $posEnd, $context);
+    }
+
     public function addedTo(Value $other): Number | RuntimeError
     {
         if($other instanceof Number) {

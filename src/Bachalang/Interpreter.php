@@ -6,7 +6,9 @@ namespace Bachalang;
 
 use Bachalang\Errors\RuntimeError;
 use Bachalang\Nodes\BinOpNode;
+use Bachalang\Nodes\CallNode;
 use Bachalang\Nodes\ForNode;
+use Bachalang\Nodes\FuncDefNode;
 use Bachalang\Nodes\IfNode;
 use Bachalang\Nodes\Node;
 use Bachalang\Nodes\NumberNode;
@@ -14,28 +16,29 @@ use Bachalang\Nodes\UnaryOpNode;
 use Bachalang\Nodes\VarAccessNode;
 use Bachalang\Nodes\VarAssignNode;
 use Bachalang\Nodes\WhileNode;
+use Bachalang\Values\Func;
 use Bachalang\Values\Number;
 use Exception;
 
 class Interpreter
 {
-    public function visit(Node $node, Context $context): RuntimeError|RuntimeResult
+    public static function visit(Node $node, Context $context): RuntimeError|RuntimeResult
     {
         $methodName = "visit";
         $methodName .= basename(get_class($node));
-        if(method_exists($this, $methodName)) {
-            return call_user_func_array([$this, $methodName], [$node, $context]);
+        if(method_exists(Interpreter::class, $methodName)) {
+            return call_user_func_array([Interpreter::class, $methodName], [$node, $context]);
         } else {
-            $this->noVisitMethod($methodName, $context);
+            Interpreter::noVisitMethod($methodName, $context);
         }
     }
 
-    private function noVisitMethod(string $methodName, Context $context): never
+    private static function noVisitMethod(string $methodName, Context $context): never
     {
         throw new Exception("Method: {$methodName} is not defined");
     }
 
-    private function visitNumberNode(NumberNode $node, Context $context): RuntimeResult
+    private static function visitNumberNode(NumberNode $node, Context $context): RuntimeResult
     {
         return (new RuntimeResult())->success(
             (new Number($node->token->value))
@@ -44,14 +47,14 @@ class Interpreter
         );
     }
 
-    private function visitVarAccessNode(VarAccessNode $node, Context $context): RuntimeError|RuntimeResult
+    private static function visitVarAccessNode(VarAccessNode $node, Context $context): RuntimeError|RuntimeResult
     {
-        $response = new RuntimeResult();
+        $result = new RuntimeResult();
         $varName = $node->varNameToken->value;
         $value = $context->symbolTable->get($varName);
 
         if(is_null($value)) {
-            return $response->failure(
+            return $result->failure(
                 new RuntimeError(
                     $node->posStart,
                     $node->posEnd,
@@ -61,58 +64,58 @@ class Interpreter
             );
         } else {
             $value = ($value->copy())->setPosition($node->posStart, $node->posEnd);
-            return $response->success($value);
+            return $result->success($value);
         }
     }
 
-    private function visitVarAssignNode(VarAssignNode $node, Context $context): RuntimeResult
+    private static function visitVarAssignNode(VarAssignNode $node, Context $context): RuntimeResult
     {
-        $response = new RuntimeResult();
+        $result = new RuntimeResult();
         $varName = $node->varNameToken->value;
-        $value = $response->register($this->visit($node->valueNode, $context));
-        if($response->error != null) {
-            return $response;
+        $value = $result->register(Interpreter::visit($node->valueNode, $context));
+        if($result->error != null) {
+            return $result;
         }
 
         $context->symbolTable->set($varName, $value);
-        return $response->success($value);
+        return $result->success($value);
 
     }
 
-    private function visitBinOpNode(BinOpNode $node, Context $context): RuntimeError|RuntimeResult
+    private static function visitBinOpNode(BinOpNode $node, Context $context): RuntimeError|RuntimeResult
     {
-        $response = new RuntimeResult();
-        $left = $response->register($this->visit($node->leftNode, $context));
-        if(!is_null($response->error)) {
-            return $response;
+        $result = new RuntimeResult();
+        $left = $result->register(Interpreter::visit($node->leftNode, $context));
+        if(!is_null($result->error)) {
+            return $result;
         }
-        $right = $response->register($this->visit($node->rightNode, $context));
+        $right = $result->register(Interpreter::visit($node->rightNode, $context));
 
         $operationType = $node->opNode->type;
 
         if ($operationType->checkOperator()) {
 
             $operationMethod = $operationType->getOperator();
-            $result = call_user_func_array([$left, $operationMethod], [$right]);
+            $opResult = call_user_func_array([$left, $operationMethod], [$right]);
         } elseif ($node->opNode->matches(TokenType::KEYWORD, '&&')) {
-            $result = $left->andWith($right);
+            $opResult = $left->andWith($right);
         } elseif ($node->opNode->matches(TokenType::KEYWORD, '||')) {
-            $result = $left->orWith($right);
+            $opResult = $left->orWith($right);
         }
 
         if($result instanceof RuntimeError) {
-            return $response->failure($result);
+            return $result->failure($result);
         } else {
-            return $response->success($result->setPosition($node->posStart, $node->posEnd));
+            return $result->success($opResult->setPosition($node->posStart, $node->posEnd));
         }
     }
 
-    private function visitUnaryOpNode(UnaryOpNode $node, Context $context): RuntimeError|RuntimeResult
+    private static function visitUnaryOpNode(UnaryOpNode $node, Context $context): RuntimeError|RuntimeResult
     {
-        $response = new RuntimeResult();
-        $number = $response->register($this->visit($node->node, $context));
-        if(!is_null($response->error)) {
-            return $response;
+        $result = new RuntimeResult();
+        $number = $result->register(Interpreter::visit($node->node, $context));
+        if(!is_null($result->error)) {
+            return $result;
         }
 
         if($node->opToken->type == TokenType::MINUS) {
@@ -122,58 +125,58 @@ class Interpreter
         }
 
         if($number instanceof RuntimeError) {
-            return $response->failure($number);
+            return $result->failure($number);
         } else {
-            return $response->success($number->setPosition($node->posStart, $node->posEnd));
+            return $result->success($number->setPosition($node->posStart, $node->posEnd));
         }
     }
 
-    private function visitIfNode(IfNode $node, Context $context): RuntimeError|RuntimeResult
+    private static function visitIfNode(IfNode $node, Context $context): RuntimeError|RuntimeResult
     {
-        $response = new RuntimeResult();
+        $result = new RuntimeResult();
         foreach ($node->cases as [$condition, $expr]) {
-            $conditionValue = $response->register($this->visit($condition, $context));
-            if(!is_null($response->error)) {
-                return $response;
+            $conditionValue = $result->register(Interpreter::visit($condition, $context));
+            if(!is_null($result->error)) {
+                return $result;
             }
 
             if($conditionValue->isTrue()) {
-                $exprValue = $response->register($this->visit($expr, $context));
-                if(!is_null($response->error)) {
-                    return $response;
+                $exprValue = $result->register(Interpreter::visit($expr, $context));
+                if(!is_null($result->error)) {
+                    return $result;
                 }
-                return $response->success($exprValue);
+                return $result->success($exprValue);
             }
         }
 
         if(!is_null($node->elseCase)) {
-            $elseValue = $response->register($this->visit($node->elseCase, $context));
-            if(!is_null($response->error)) {
-                return $response;
+            $elseValue = $result->register(Interpreter::visit($node->elseCase, $context));
+            if(!is_null($result->error)) {
+                return $result;
             }
-            return $response->success($elseValue);
+            return $result->success($elseValue);
         }
 
-        return $response->success(null);
+        return $result->success(null);
     }
 
-    private function visitForNode(ForNode $node, Context $context): RuntimeResult
+    private static function visitForNode(ForNode $node, Context $context): RuntimeResult
     {
-        $response = new RuntimeResult();
+        $result = new RuntimeResult();
 
-        $startValue = $response->register($this->visit($node->startValueNode, $context));
-        if(!is_null($response->error)) {
-            return $response;
+        $startValue = $result->register(Interpreter::visit($node->startValueNode, $context));
+        if(!is_null($result->error)) {
+            return $result;
         }
-        $endValue = $response->register($this->visit($node->endValueNode, $context));
-        if(!is_null($response->error)) {
-            return $response;
+        $endValue = $result->register(Interpreter::visit($node->endValueNode, $context));
+        if(!is_null($result->error)) {
+            return $result;
         }
 
         if(!is_null($node->stepValueNode)) {
-            $stepValue = $response->register($this->visit($node->stepValueNode, $context));
-            if(!is_null($response->error)) {
-                return $response;
+            $stepValue = $result->register(Interpreter::visit($node->stepValueNode, $context));
+            if(!is_null($result->error)) {
+                return $result;
             }
         } else {
             $stepValue = new Number(1);
@@ -195,33 +198,80 @@ class Interpreter
             $context->symbolTable->set($node->varNameToken->value, new Number($i));
             $i += $stepValue->value;
 
-            $response->register($this->visit($node->bodyNode, $context));
-            if(!is_null($response->error)) {
-                return $response;
+            $result->register(Interpreter::visit($node->bodyNode, $context));
+            if(!is_null($result->error)) {
+                return $result;
             }
 
         }
-        return $response->success(null);
+        return $result->success(null);
     }
 
-    private function visitWhileNode(WhileNode $node, Context $context): RuntimeError|RuntimeResult
+    private static function visitWhileNode(WhileNode $node, Context $context): RuntimeError|RuntimeResult
     {
-        $response = new RuntimeResult();
+        $result = new RuntimeResult();
 
         while (true) {
-            $condition = $response->register($this->visit($node->conditionNode, $context));
-            if(!is_null($response->error)) {
-                return $response;
+            $condition = $result->register(Interpreter::visit($node->conditionNode, $context));
+            if(!is_null($result->error)) {
+                return $result;
             }
 
             if(!$condition->isTrue()) {
                 break;
             }
-            $response->register($this->visit($node->bodyNode, $context));
-            if(!is_null($response->error)) {
-                return $response;
+            $result->register(Interpreter::visit($node->bodyNode, $context));
+            if(!is_null($result->error)) {
+                return $result;
             }
         }
-        return $response->success(null);
+        return $result->success(null);
+    }
+
+    private static function visitFuncDefNode(FuncDefNode $node, Context $context): RuntimeError|RuntimeResult
+    {
+        $result = new RuntimeResult();
+
+        $funcName = $node->varNameToken->value ?? null;
+        $bodyNode = $node->bodyNode;
+        $argNames = [];
+        foreach ($node->argNameTokens as $argName) {
+            $argNames[] = $argName->value;
+        }
+
+        $funcValue = new Func($funcName, $bodyNode, $argNames);
+        $funcValue->setContext($context);
+        $funcValue->setPosition($node->posStart, $node->posEnd);
+
+        if(!is_null($node->varNameToken)) {
+            $context->symbolTable->set($funcName, $funcValue);
+        }
+
+        return $result->success($funcValue);
+    }
+
+    private static function visitCallNode(CallNode $node, Context $context): RuntimeError|RuntimeResult
+    {
+        $result = new RuntimeResult();
+
+        $args = [];
+
+        $valueToCall = $result->register(Interpreter::visit($node->nodeToCall, $context));
+        if(!is_null($result->error)) {
+            return $result;
+        }
+
+        $valueToCall = $valueToCall->copy()->setPosition($node->posStart, $node->posEnd);
+
+        foreach ($node->argNodes as $value) {
+            array_push($args, $result->register(Interpreter::visit($value, $context)));
+        }
+
+        $returnValue = $result->register($valueToCall->execute($args));
+        if(!is_null($result->error)) {
+            return $result;
+        }
+
+        return $result->success($returnValue);
     }
 }

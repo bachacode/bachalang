@@ -328,7 +328,7 @@ class Parser
             return $result->failure(new InvalidSyntaxError(
                 $token->posStart,
                 $token->posEnd,
-                "Expected '+', '-', 'IDENTIFIER', '(' 'INT' or 'FLOAT'"
+                "Expected '+', '-', 'IDENTIFIER', '(' 'INT', 'FLOAT', 'if', 'for', 'while', or 'function'"
             ));
         }
     }
@@ -575,7 +575,7 @@ class Parser
                 return $result->failure(new InvalidSyntaxError(
                     $this->currentToken->posStart,
                     $this->currentToken->posEnd,
-                    "Expected '(' after 'IDENTIFIER'"
+                    "Expected '(' or 'IDENTIFIER'"
                 ));
             }
         }
@@ -603,14 +603,14 @@ class Parser
                 array_push($argNameTokens, $this->currentToken);
                 $result->registerAdvancement();
                 $this->advance();
-            }
 
-            if($this->currentToken->type != TokenType::RPAREN) {
-                return $result->failure(new InvalidSyntaxError(
-                    $this->currentToken->posStart,
-                    $this->currentToken->posEnd,
-                    "Expected ',' or ')'"
-                ));
+                if($this->currentToken->type != TokenType::RPAREN) {
+                    return $result->failure(new InvalidSyntaxError(
+                        $this->currentToken->posStart,
+                        $this->currentToken->posEnd,
+                        "Expected ',' or ')'"
+                    ));
+                }
             }
         } else {
             if($this->currentToken->type != TokenType::RPAREN) {

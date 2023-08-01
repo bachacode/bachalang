@@ -12,7 +12,6 @@ use Exception;
 class Value
 {
     public function __construct(
-        public mixed $value,
         protected ?Position $posStart = null,
         protected ?Position $posEnd = null,
         protected ?Context $context = null
@@ -108,12 +107,7 @@ class Value
     {
         return false;
     }
-
-    public function __toString(): string
-    {
-        return "{$this->value}";
-    }
-
+    
     protected function illegalOperation(Value $other = null)
     {
         return (new RuntimeError($this->posStart, $other->posEnd, 'Illegal Operation', $this->context));

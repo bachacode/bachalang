@@ -46,7 +46,7 @@ enum TokenType: string
     public static function checkToken(mixed $char): bool
     {
         return match($char) {
-            '+', '-', '*', '/', '^', '(', ')'  => true,
+            '+', '-', '*', '/', '^', '(', ')', ','  => true,
             default => false
         };
     }
