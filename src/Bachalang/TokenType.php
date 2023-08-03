@@ -8,6 +8,7 @@ enum TokenType: string
 {
     case INT = 'INT';
     case FLOAT = 'FLOAT';
+    case STRING = 'STRING';
     case IDENTIFIER = 'IDENTIFIER';
     case KEYWORD = 'KEYWORD';
     case PLUS = 'PLUS';

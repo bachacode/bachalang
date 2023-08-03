@@ -11,6 +11,7 @@ use Bachalang\Nodes\ForNode;
 use Bachalang\Nodes\FuncDefNode;
 use Bachalang\Nodes\IfNode;
 use Bachalang\Nodes\NumberNode;
+use Bachalang\Nodes\StringNode;
 use Bachalang\Nodes\UnaryOpNode;
 use Bachalang\Nodes\VarAccessNode;
 use Bachalang\Nodes\VarAssignNode;
@@ -269,7 +270,13 @@ class Parser
             $this->advance();
             return $result->success(new VarAccessNode($token));
         }
-        // #12 Priority - Expression between parenthesis
+        // #12 Priority - String
+        elseif($token->type == TokenType::STRING) {
+            $result->registerAdvancement();
+            $this->advance();
+            return $result->success(new StringNode($token));
+        }
+        // #13 Priority - Expression between parenthesis
         elseif ($token->type == TokenType::LPAREN) {
             $result->registerAdvancement();
             $this->advance();
@@ -288,7 +295,7 @@ class Parser
                 ));
             }
         }
-        // #13 Priority - If expression
+        // #14 Priority - If expression
         elseif ($token->matches(TokenType::KEYWORD, 'if')) {
             $ifExpr = $result->register($this->ifExpr());
             if($result->error != null) {
@@ -297,7 +304,7 @@ class Parser
                 return $result->success($ifExpr);
             }
         }
-        // #14 Priority - For expression
+        // #15 Priority - For expression
         elseif ($token->matches(TokenType::KEYWORD, 'for')) {
             $forExpr = $result->register($this->forExpr());
             if($result->error != null) {
@@ -306,7 +313,7 @@ class Parser
                 return $result->success($forExpr);
             }
         }
-        // #15 Priority - For expression
+        // #16 Priority - For expression
         elseif ($token->matches(TokenType::KEYWORD, 'while')) {
             $whileExpr = $result->register($this->whileExpr());
             if($result->error != null) {
@@ -314,7 +321,7 @@ class Parser
             } else {
                 return $result->success($whileExpr);
             }
-        } // #15 Priority - For expression
+        } // #17 Priority - For expression
         elseif ($token->matches(TokenType::KEYWORD, 'function')) {
             $funcDef = $result->register($this->funcDef());
             if($result->error != null) {

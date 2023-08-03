@@ -50,6 +50,9 @@ class Lexer
             } elseif (str_contains(LETTERS, $this->currentChar)) {
                 array_push($tokens, $this->makeIdentifier());
                 // $this->advance();
+            } elseif ($this->currentChar == '"') {
+                array_push($tokens, $this->makeString());
+                // $this->advance();
             } elseif (TokenType::checkToken(($this->currentChar))) {
                 array_push($tokens, new Token(TokenType::getToken($this->currentChar), $this->pos));
                 $this->advance();
@@ -117,6 +120,36 @@ class Lexer
         }
 
         return new Token($tokenType, $posStart, $this->pos, $idStr);
+    }
+
+    public function makeString(): Token
+    {
+        $string = '';
+        $posStart = $this->pos->copy();
+        $escapeChar = false;
+        $this->advance();
+
+        $escapeCharacters =  [
+            'n' => '\n',
+            't' => '\t'
+        ];
+
+        while ($this->currentChar != null && $this->currentChar != '"' || $escapeChar == true) {
+            if($escapeChar == true) {
+                $string .= $escapeCharacters[$this->currentChar] ?? $this->currentChar;
+                $escapeChar = false;
+            } else {
+                if($this->currentChar == '\\') {
+                    $escapeChar = true;
+                } else {
+                    $string .= $this->currentChar;
+                }
+            }
+            $this->advance();
+        }
+        $this->advance();
+        return new Token(TokenType::STRING, $posStart, $this->pos, $string);
+
     }
 
     private function makeEquals(): Token

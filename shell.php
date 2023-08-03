@@ -9,6 +9,8 @@ use Bachalang\Runner;
 
 $runner = new Runner();
 
+echo 5 . 5;
+
 while (true) {
     $text = readline('bachalang > ');
     $result = $runner->run($text);

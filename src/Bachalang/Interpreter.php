@@ -12,12 +12,14 @@ use Bachalang\Nodes\FuncDefNode;
 use Bachalang\Nodes\IfNode;
 use Bachalang\Nodes\Node;
 use Bachalang\Nodes\NumberNode;
+use Bachalang\Nodes\StringNode;
 use Bachalang\Nodes\UnaryOpNode;
 use Bachalang\Nodes\VarAccessNode;
 use Bachalang\Nodes\VarAssignNode;
 use Bachalang\Nodes\WhileNode;
 use Bachalang\Values\Func;
 use Bachalang\Values\Number;
+use Bachalang\Values\StringVal;
 use Exception;
 
 class Interpreter
@@ -42,6 +44,15 @@ class Interpreter
     {
         return (new RuntimeResult())->success(
             (new Number($node->token->value))
+            ->setContext($context)
+            ->setPosition($node->posStart, $node->posEnd)
+        );
+    }
+
+    private static function visitStringNode(StringNode $node, Context $context): RuntimeResult
+    {
+        return (new RuntimeResult())->success(
+            (new StringVal($node->token->value))
             ->setContext($context)
             ->setPosition($node->posStart, $node->posEnd)
         );

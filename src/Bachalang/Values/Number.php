@@ -19,10 +19,12 @@ class Number extends Value
         parent::__construct($posStart, $posEnd, $context);
     }
 
-    public function addedTo(Value $other): Number | RuntimeError
+    public function addedTo(Value $other): Number | StringVal |  RuntimeError
     {
         if($other instanceof Number) {
             return (new Number($this->value + $other->value))->setContext($this->context);
+        } elseif ($other instanceof StringVal) {
+            return (new StringVal((string)$this->value . $other->value))->setContext($this->context);
         } else {
             return $this->illegalOperation($other);
         }
