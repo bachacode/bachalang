@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Bachalang;
 
 use Bachalang\Errors\InvalidSyntaxError;
+use Bachalang\Nodes\ArrayNode;
 use Bachalang\Nodes\BinOpNode;
 use Bachalang\Nodes\CallNode;
 use Bachalang\Nodes\ForNode;
@@ -112,7 +113,7 @@ class Parser
                 return $result->failure(new InvalidSyntaxError(
                     $this->currentToken->posStart,
                     $this->currentToken->posEnd,
-                    "Expected 'INT', 'FLOAT', 'IDENTIFIER', 'FOR', 'WHILE', 'FUNCTION', '+', '-', '(', or '!'"
+                    "Expected 'INT', 'FLOAT', 'IDENTIFIER', 'FOR', 'WHILE', 'FUNCTION', '+', '-', '(', '[', or '!'"
                 ));
             } else {
                 return $result->success($node);
@@ -152,7 +153,7 @@ class Parser
                 return $result->failure(new InvalidSyntaxError(
                     $this->currentToken->posStart,
                     $this->currentToken->posEnd,
-                    "Expected 'INT', 'FLOAT', 'IDENTIFIER' '+', '-', '(', or '!'"
+                    "Expected 'INT', 'FLOAT', 'IDENTIFIER' '+', '-', '(', '[', or '!'"
                 ));
             } else {
                 return $result->success($node);
@@ -222,7 +223,7 @@ class Parser
                     return $result->failure(new InvalidSyntaxError(
                         $this->currentToken->posStart,
                         $this->currentToken->posEnd,
-                        "Expected ')', 'INT', 'FLOAT', 'IDENTIFIER', 'FOR', 'WHILE', 'FUNCTION', '+', '-', '(', or '!'"
+                        "Expected ')', 'INT', 'FLOAT', 'IDENTIFIER', 'FOR', 'WHILE', 'FUNCTION', '+', '-', '(', '[', or '!'"
                     ));
                 }
 
@@ -295,7 +296,15 @@ class Parser
                 ));
             }
         }
-        // #14 Priority - If expression
+        // #14 Priority - Expression between square brackets
+        elseif ($token->type == TokenType::LSQUARE) {
+            $listExpr = $result->register($this->arrayExpr());
+            if($result->error != null) {
+                return $result;
+            }
+            return $result->success($listExpr);
+        }
+        // #15 Priority - If expression
         elseif ($token->matches(TokenType::KEYWORD, 'if')) {
             $ifExpr = $result->register($this->ifExpr());
             if($result->error != null) {
@@ -304,7 +313,7 @@ class Parser
                 return $result->success($ifExpr);
             }
         }
-        // #15 Priority - For expression
+        // #16 Priority - For expression
         elseif ($token->matches(TokenType::KEYWORD, 'for')) {
             $forExpr = $result->register($this->forExpr());
             if($result->error != null) {
@@ -313,7 +322,7 @@ class Parser
                 return $result->success($forExpr);
             }
         }
-        // #16 Priority - For expression
+        // #17 Priority - For expression
         elseif ($token->matches(TokenType::KEYWORD, 'while')) {
             $whileExpr = $result->register($this->whileExpr());
             if($result->error != null) {
@@ -321,7 +330,8 @@ class Parser
             } else {
                 return $result->success($whileExpr);
             }
-        } // #17 Priority - For expression
+        }
+        // #18 Priority - For expression
         elseif ($token->matches(TokenType::KEYWORD, 'function')) {
             $funcDef = $result->register($this->funcDef());
             if($result->error != null) {
@@ -335,9 +345,64 @@ class Parser
             return $result->failure(new InvalidSyntaxError(
                 $token->posStart,
                 $token->posEnd,
-                "Expected '+', '-', 'IDENTIFIER', '(' 'INT', 'FLOAT', 'if', 'for', 'while', or 'function'"
+                "Expected '+', '-', 'IDENTIFIER', '(', '[', 'INT', 'FLOAT', 'if', 'for', 'while', or 'function'"
             ));
         }
+    }
+
+    private function arrayExpr()
+    {
+        $result = new ParseResult();
+        $elementNodes = [];
+        $posStart = $this->currentToken->posStart->copy();
+
+        if($this->currentToken->type != TokenType::LSQUARE) {
+            return $result->failure(new InvalidSyntaxError(
+                $this->currentToken->posStart,
+                $this->currentToken->posEnd,
+                "Expected '['"
+            ));
+        }
+
+        $result->registerAdvancement();
+        $this->advance();
+
+        if($this->currentToken->type == TokenType::RSQUARE) {
+            $result->registerAdvancement();
+            $this->advance();
+        } else {
+            array_push($elementNodes, $result->register($this->expr()));
+            if(!is_null($result->error)) {
+                return $result->failure(new InvalidSyntaxError(
+                    $this->currentToken->posStart,
+                    $this->currentToken->posEnd,
+                    "Expected ']', 'INT', 'FLOAT', 'IDENTIFIER', 'FOR', 'WHILE', 'FUNCTION', '+', '-', '(', or '!'"
+                ));
+            }
+
+            while ($this->currentToken->type == TokenType::COMMA) {
+                $result->registerAdvancement();
+                $this->advance();
+
+                array_push($elementNodes, $result->register($this->expr()));
+                if(!is_null($result->error)) {
+                    return $result;
+                }
+            }
+
+            if($this->currentToken->type != TokenType::RSQUARE) {
+                return $result->failure(new InvalidSyntaxError(
+                    $this->currentToken->posStart,
+                    $this->currentToken->posEnd,
+                    "Expected ']' or ','"
+                ));
+            }
+
+            $result->registerAdvancement();
+            $this->advance();
+
+        }
+        return $result->success(new ArrayNode($elementNodes, $posStart, $this->currentToken->posEnd->copy()));
     }
 
     private function ifExpr()

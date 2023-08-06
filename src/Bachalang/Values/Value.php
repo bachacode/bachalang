@@ -107,10 +107,10 @@ class Value
     {
         return false;
     }
-    
+
     protected function illegalOperation(Value $other = null)
     {
-        return (new RuntimeError($this->posStart, $other->posEnd, 'Illegal Operation', $this->context));
+        return new RuntimeError($this->posStart, $other->posEnd, 'Illegal Operation', $this->context);
     }
 
     public function copy()

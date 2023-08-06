@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Bachalang;
 
 use Bachalang\Errors\RuntimeError;
+use Bachalang\Nodes\ArrayNode;
 use Bachalang\Nodes\BinOpNode;
 use Bachalang\Nodes\CallNode;
 use Bachalang\Nodes\ForNode;
@@ -17,6 +18,7 @@ use Bachalang\Nodes\UnaryOpNode;
 use Bachalang\Nodes\VarAccessNode;
 use Bachalang\Nodes\VarAssignNode;
 use Bachalang\Nodes\WhileNode;
+use Bachalang\Values\ArrayVal;
 use Bachalang\Values\Func;
 use Bachalang\Values\Number;
 use Bachalang\Values\StringVal;
@@ -114,8 +116,8 @@ class Interpreter
             $opResult = $left->orWith($right);
         }
 
-        if($result instanceof RuntimeError) {
-            return $result->failure($result);
+        if($opResult instanceof RuntimeError) {
+            return $result->failure($opResult);
         } else {
             return $result->success($opResult->setPosition($node->posStart, $node->posEnd));
         }
@@ -140,6 +142,24 @@ class Interpreter
         } else {
             return $result->success($number->setPosition($node->posStart, $node->posEnd));
         }
+    }
+
+    private static function visitArrayNode(ArrayNode $node, Context $context): RuntimeError|RuntimeResult
+    {
+        $result = new RuntimeResult();
+        $elements = [];
+
+        foreach ($node->elementNodes as $value) {
+            array_push($elements, $result->register(Interpreter::visit($value, $context)));
+            if(!is_null($result->error)) {
+                return $result;
+            }
+        }
+        return $result->success(
+            (new ArrayVal($elements))
+            ->setContext($context)
+            ->setPosition($node->posStart, $node->posEnd)
+        );
     }
 
     private static function visitIfNode(IfNode $node, Context $context): RuntimeError|RuntimeResult
@@ -174,7 +194,7 @@ class Interpreter
     private static function visitForNode(ForNode $node, Context $context): RuntimeResult
     {
         $result = new RuntimeResult();
-
+        $elements = [];
         $startValue = $result->register(Interpreter::visit($node->startValueNode, $context));
         if(!is_null($result->error)) {
             return $result;
@@ -209,19 +229,24 @@ class Interpreter
             $context->symbolTable->set($node->varNameToken->value, new Number($i));
             $i += $stepValue->value;
 
-            $result->register(Interpreter::visit($node->bodyNode, $context));
+            array_push($elements, $result->register(Interpreter::visit($node->bodyNode, $context)));
             if(!is_null($result->error)) {
                 return $result;
             }
 
         }
-        return $result->success(null);
+        return $result->success(
+            (
+            new ArrayVal($elements))
+            ->setContext($context)
+            ->setPosition($node->posStart, $node->posEnd)
+        );
     }
 
     private static function visitWhileNode(WhileNode $node, Context $context): RuntimeError|RuntimeResult
     {
         $result = new RuntimeResult();
-
+        $elements = [];
         while (true) {
             $condition = $result->register(Interpreter::visit($node->conditionNode, $context));
             if(!is_null($result->error)) {
@@ -231,12 +256,17 @@ class Interpreter
             if(!$condition->isTrue()) {
                 break;
             }
-            $result->register(Interpreter::visit($node->bodyNode, $context));
+            array_push($elements, $result->register(Interpreter::visit($node->bodyNode, $context)));
             if(!is_null($result->error)) {
                 return $result;
             }
         }
-        return $result->success(null);
+        return $result->success(
+            (
+            new ArrayVal($elements))
+            ->setContext($context)
+            ->setPosition($node->posStart, $node->posEnd)
+        );
     }
 
     private static function visitFuncDefNode(FuncDefNode $node, Context $context): RuntimeError|RuntimeResult

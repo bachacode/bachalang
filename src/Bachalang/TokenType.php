@@ -18,6 +18,8 @@ enum TokenType: string
     case POW = 'POW';
     case LPAREN = 'LPAREN';
     case RPAREN = 'RPAREN';
+    case LSQUARE = 'LSQUARE';
+    case RSQUARE = 'RSQUARE';
     case EQUALS = 'EQUALS';
     case EE = 'EE';
     case NOT = 'NOT';
@@ -40,6 +42,8 @@ enum TokenType: string
             '^' => TokenType::POW,
             '(' => TokenType::LPAREN,
             ')' => TokenType::RPAREN,
+            '[' => TokenType::LSQUARE,
+            ']' => TokenType::RSQUARE,
             ',' => TokenType::COMMA,
         };
     }
@@ -47,7 +51,7 @@ enum TokenType: string
     public static function checkToken(mixed $char): bool
     {
         return match($char) {
-            '+', '-', '*', '/', '^', '(', ')', ','  => true,
+            '+', '-', '*', '/', '^', '(', ')', '[', ']', ','  => true,
             default => false
         };
     }
