@@ -19,7 +19,7 @@ class FuncDefNode extends Node
         } elseif(count($argNameTokens) > 0) {
             $this->posStart = $argNameTokens[0]->posStart;
         } else {
-            $this->posEnd = $bodyNode->posStart;
+            $this->posStart = $bodyNode->posStart;
         }
         $this->posEnd = $bodyNode->posEnd;
     }
