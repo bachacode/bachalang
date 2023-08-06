@@ -27,24 +27,29 @@ class BaseFunc extends Value
         parent::__construct($posStart, $posEnd, $context);
     }
 
-    public function execute($args)
+    public function generateNewContext(): Context
     {
-        $result = new RuntimeResult();
         $newContext = new Context($this->name, $this->context, $this->posStart);
         $newContext->symbolTable = new SymbolTable([], $newContext->parent->symbolTable);
 
-        if(count($args) > count($this->argNames)) {
-            $tooMany = count($args) - count($this->argNames);
-            return (new RuntimeError(
+        return $newContext;
+    }
+
+    public function checkArgs($argNames, $args)
+    {
+        $result = new RuntimeResult();
+        if(count($args) > count($argNames)) {
+            $tooMany = count($args) - count($argNames);
+            return $result->failure(new RuntimeError(
                 $this->posStart,
                 $this->posEnd,
                 "{$tooMany} too many arguments passed into {$this->name}",
                 $this->context
             ));
         }
-        if(count($args) < count($this->argNames)) {
-            $tooFew = count($this->argNames) - count($args);
-            return (new RuntimeError(
+        if(count($args) < count($argNames)) {
+            $tooFew = count($argNames) - count($args);
+            return $result->failure(new RuntimeError(
                 $this->posStart,
                 $this->posEnd,
                 "{$tooFew} too few arguments passed into {$this->name}",
@@ -52,19 +57,34 @@ class BaseFunc extends Value
             ));
         }
 
-        foreach ($args as $key => $value) {
-            $argName = $this->argNames[$key];
-            $argValue = $value;
-            $argValue->setContext($newContext);
-            $newContext->symbolTable->set($argName, $argValue);
-        }
+        return $result->success(null);
+    }
 
-        $value = $result->register(Interpreter::visit($this->bodyNode, $newContext));
+    public function populateArgs($argNames, $args, $execContext)
+    {
+        $result = new RuntimeResult();
+        foreach ($args as $key => $value) {
+            $argName = $argNames[$key];
+            $argValue = $value;
+            $argValue->setContext($execContext);
+            $execContext->symbolTable->set($argName, $argValue);
+        }
+        return $result->success(null);
+    }
+
+    public function checkAndPopulateArgs($argNames, $args, $execContext)
+    {
+        $result = new RuntimeResult();
+        $result->register($this->checkArgs($argNames, $args));
+        if(!is_null($result->error)) {
+            return $result;
+        }
+        $result->register($this->populateArgs($argNames, $args, $execContext));
         if(!is_null($result->error)) {
             return $result;
         }
 
-        return $result->success($value);
+        return $result->success(null);
     }
 
     public function copy(): Func

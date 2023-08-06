@@ -15,7 +15,7 @@ class RuntimeResult
     ) {
     }
 
-    public function register($res)
+    public function register(RuntimeResult $res)
     {
         if($res->error === null) {
             return $res->result;
