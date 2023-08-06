@@ -10,6 +10,10 @@ use Bachalang\Position;
 
 class Number extends Value
 {
+    public const NULL = 0;
+    public const TRUE = 1;
+    public const FALSE = 0;
+
     public function __construct(
         public mixed $value,
         ?Position $posStart = null,

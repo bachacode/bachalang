@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Bachalang;
 
+use Bachalang\Values\Number;
+
 class Runner
 {
     private Lexer $lexer;
@@ -18,9 +20,9 @@ class Runner
 
         // Create Global Symbol Table - Keep track of variables
         $this->globalSymbolTable = new SymbolTable();
-        $this->globalSymbolTable->set('null', 0);
-        $this->globalSymbolTable->set('true', 1);
-        $this->globalSymbolTable->set('false', 0);
+        $this->globalSymbolTable->set('null', Number::NULL);
+        $this->globalSymbolTable->set('true', Number::TRUE);
+        $this->globalSymbolTable->set('false', Number::FALSE);
         // Create Parser - Used to convert tokens into an Abstract Syntax Tree
 
         // Context - In with context is the current code executing
