@@ -32,10 +32,9 @@ class Func extends Value
         $result = new RuntimeResult();
         $newContext = new Context($this->name, $this->context, $this->posStart);
         $newContext->symbolTable = new SymbolTable([], $newContext->parent->symbolTable);
-
         if(count($args) > count($this->argNames)) {
             $tooMany = count($args) - count($this->argNames);
-            return (new RuntimeError(
+            return $result->failure(new RuntimeError(
                 $this->posStart,
                 $this->posEnd,
                 "{$tooMany} too many arguments passed into {$this->name}",
@@ -44,7 +43,7 @@ class Func extends Value
         }
         if(count($args) < count($this->argNames)) {
             $tooFew = count($this->argNames) - count($args);
-            return (new RuntimeError(
+            return $result->failure(new RuntimeError(
                 $this->posStart,
                 $this->posEnd,
                 "{$tooFew} too few arguments passed into {$this->name}",
