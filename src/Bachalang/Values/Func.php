@@ -5,24 +5,22 @@ declare(strict_types=1);
 namespace Bachalang\Values;
 
 use Bachalang\Context;
-use Bachalang\Errors\RuntimeError;
 use Bachalang\Interpreter;
 use Bachalang\Position;
 use Bachalang\RuntimeResult;
-use Bachalang\SymbolTable;
 
 class Func extends BaseFunc
 {
     public function __construct(
         mixed $name,
-        $bodyNode,
-        $argNames,
+        public $bodyNode,
+        public $argNames,
         ?Position $posStart = null,
         ?Position $posEnd = null,
         ?Context $context = null
     ) {
 
-        parent::__construct($name, $bodyNode, $argNames, $posStart, $posEnd, $context);
+        parent::__construct($name, $posStart, $posEnd, $context);
     }
 
     public function execute($args)
@@ -41,9 +39,11 @@ class Func extends BaseFunc
         return $result->success($value);
     }
 
-    public function __toString(): string
+    public function copy(): Func
     {
-        return "<Function {$this->name}>";
+        $copy = new Func($this->name, $this->bodyNode, $this->argNames);
+        $copy->setPosition($this->posStart, $this->posEnd);
+        $copy->setContext($this->context);
+        return $copy;
     }
-
 }

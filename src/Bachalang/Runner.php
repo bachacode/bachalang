@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bachalang;
 
+use Bachalang\Values\BuiltInFunc;
 use Bachalang\Values\Number;
 
 class Runner
@@ -15,14 +16,22 @@ class Runner
 
     public function __construct()
     {
-        // Create lexer - Used to convert plain text into tokens
 
+        $builtInFunctions = [
+            'print', 'print_return', 'input', 'input_int', 'clear',
+            'is_number', 'is_string', 'is_array', 'is_function',
+            'append', 'pop', 'extend'
+        ];
 
         // Create Global Symbol Table - Keep track of variables
         $this->globalSymbolTable = new SymbolTable();
-        $this->globalSymbolTable->set('null', Number::NULL);
-        $this->globalSymbolTable->set('true', Number::TRUE);
-        $this->globalSymbolTable->set('false', Number::FALSE);
+        $this->globalSymbolTable->set('null', new Number(Number::NULL));
+        $this->globalSymbolTable->set('true', new Number(Number::TRUE));
+        $this->globalSymbolTable->set('false', new Number(Number::FALSE));
+        // Create Built-in functions
+        foreach ($builtInFunctions as $funcName) {
+            $this->globalSymbolTable->set($funcName, new BuiltInFunc($funcName));
+        }
         // Create Parser - Used to convert tokens into an Abstract Syntax Tree
 
         // Context - In with context is the current code executing

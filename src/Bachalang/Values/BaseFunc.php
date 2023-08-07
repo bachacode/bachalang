@@ -6,7 +6,6 @@ namespace Bachalang\Values;
 
 use Bachalang\Context;
 use Bachalang\Errors\RuntimeError;
-use Bachalang\Interpreter;
 use Bachalang\Position;
 use Bachalang\RuntimeResult;
 use Bachalang\SymbolTable;
@@ -15,8 +14,6 @@ class BaseFunc extends Value
 {
     public function __construct(
         public mixed $name,
-        public $bodyNode,
-        public $argNames,
         ?Position $posStart = null,
         ?Position $posEnd = null,
         ?Context $context = null
@@ -87,9 +84,9 @@ class BaseFunc extends Value
         return $result->success(null);
     }
 
-    public function copy(): Func
+    public function copy(): BaseFunc
     {
-        $copy = new Func($this->name, $this->bodyNode, $this->argNames);
+        $copy = new BaseFunc($this->name);
         $copy->setPosition($this->posStart, $this->posEnd);
         $copy->setContext($this->context);
         return $copy;

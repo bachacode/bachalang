@@ -76,7 +76,7 @@ class Interpreter
                 )
             );
         } else {
-            $value = ($value->copy())->setPosition($node->posStart, $node->posEnd);
+            $value = ($value->copy())->setPosition($node->posStart, $node->posEnd)->setContext($context);
             return $result->success($value);
         }
     }
@@ -312,7 +312,11 @@ class Interpreter
         if(!is_null($result->error)) {
             return $result;
         }
-
+        if($returnValue instanceof RuntimeResult) {
+            $returnValue = $returnValue->result->copy()->setPosition($node->posStart, $node->posEnd)->setContext($context);
+        } else {
+            $returnValue = $returnValue->copy()->setPosition($node->posStart, $node->posEnd)->setContext($context);
+        }
         return $result->success($returnValue);
     }
 }
