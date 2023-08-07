@@ -34,7 +34,7 @@ class BuiltInFunc extends BaseFunc
         parent::__construct($name, $posStart, $posEnd, $context);
     }
 
-    public function execute($args)
+    public function execute($args): RuntimeResult
     {
         $result = new RuntimeResult();
         $execContext = $this->generateNewContext();
@@ -55,7 +55,7 @@ class BuiltInFunc extends BaseFunc
             return $result;
         }
 
-        return $result->success($returnValue);
+        return $result->success($returnValue->result);
     }
 
     private function noExecuteMethod($methodName)
@@ -63,24 +63,24 @@ class BuiltInFunc extends BaseFunc
         throw new \Exception("Method: {$methodName} is not defined");
     }
 
-    private function execute_print(Context $execContext)
+    private function execute_print(Context $execContext): RuntimeResult
     {
         print((string)$execContext->symbolTable->get('value') . PHP_EOL);
         return (new RuntimeResult())->success(new Number(Number::NULL));
     }
 
-    private function execute_print_return(Context $execContext)
+    private function execute_print_return(Context $execContext): RuntimeResult
     {
-        return (new RuntimeResult())->success((string)$execContext->symbolTable->get('value'));
+        return (new RuntimeResult())->success(new StringVal($execContext->symbolTable->get('value')));
     }
 
-    private function execute_input(Context $execContext)
+    private function execute_input(Context $execContext): RuntimeResult
     {
         $text = readline();
         return (new RuntimeResult())->success(new StringVal((string) $text));
     }
 
-    private function execute_input_int(Context $execContext)
+    private function execute_input_int(Context $execContext): RuntimeResult
     {
         while (true) {
             $text = readline();
@@ -95,41 +95,41 @@ class BuiltInFunc extends BaseFunc
         return (new RuntimeResult())->success(new Number($number));
     }
 
-    private function execute_clear(Context $execContext)
+    private function execute_clear(Context $execContext): RuntimeResult
     {
         echo chr(27).chr(91).'H'.chr(27).chr(91).'J'; // ^[H^[J
         return (new RuntimeResult())->success(new Number(Number::NULL));
     }
 
-    private function execute_is_number(Context $execContext)
+    private function execute_is_number(Context $execContext): RuntimeResult
     {
         $condition = $execContext->symbolTable->get('value') instanceof Number ? new Number(Number::TRUE) : new Number(Number::FALSE);
 
         return (new RuntimeResult())->success($condition);
     }
 
-    private function execute_is_string(Context $execContext)
+    private function execute_is_string(Context $execContext): RuntimeResult
     {
         $condition = $execContext->symbolTable->get('value') instanceof StringVal ? new Number(Number::TRUE) : new Number(Number::FALSE);
 
         return (new RuntimeResult())->success($condition);
     }
 
-    private function execute_is_array(Context $execContext)
+    private function execute_is_array(Context $execContext): RuntimeResult
     {
         $condition = $execContext->symbolTable->get('value') instanceof ArrayVal ? new Number(Number::TRUE) : new Number(Number::FALSE);
 
         return (new RuntimeResult())->success($condition);
     }
 
-    private function execute_is_function(Context $execContext)
+    private function execute_is_function(Context $execContext): RuntimeResult
     {
         $condition = $execContext->symbolTable->get('value') instanceof BaseFunc ? new Number(Number::TRUE) : new Number(Number::FALSE);
 
         return (new RuntimeResult())->success($condition);
     }
 
-    private function execute_append(Context $execContext)
+    private function execute_append(Context $execContext): RuntimeResult
     {
         $result = new RuntimeResult();
         $array = $execContext->symbolTable->get('array');
@@ -146,11 +146,11 @@ class BuiltInFunc extends BaseFunc
             );
         }
 
-        array_push($array->elements, $value);
+        $array->elements[] = $value;
         return $result->success(new Number(Number::NULL));
     }
 
-    private function execute_pop(Context $execContext)
+    private function execute_pop(Context $execContext): RuntimeResult
     {
         $result = new RuntimeResult();
         $array = $execContext->symbolTable->get('array');
@@ -194,7 +194,7 @@ class BuiltInFunc extends BaseFunc
         return $result->success($element);
     }
 
-    private function execute_extend(Context $execContext)
+    private function execute_extend(Context $execContext): RuntimeResult
     {
         $result = new RuntimeResult();
         $array = $execContext->symbolTable->get('array');

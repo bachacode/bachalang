@@ -54,7 +54,7 @@ class BaseFunc extends Value
             ));
         }
 
-        return $result->success(null);
+        return $result->success(new Number(Number::NULL));
     }
 
     public function populateArgs($argNames, $args, $execContext)
@@ -66,7 +66,7 @@ class BaseFunc extends Value
             $argValue->setContext($execContext);
             $execContext->symbolTable->set($argName, $argValue);
         }
-        return $result->success(null);
+        return $result->success(new Number(Number::NULL));
     }
 
     public function checkAndPopulateArgs($argNames, $args, $execContext)
@@ -81,7 +81,7 @@ class BaseFunc extends Value
             return $result;
         }
 
-        return $result->success(null);
+        return $result->success(new Number(Number::NULL));
     }
 
     public function copy(): BaseFunc

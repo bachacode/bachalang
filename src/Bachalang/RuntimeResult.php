@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Bachalang;
 
 use Bachalang\Errors\RuntimeError;
-use Bachalang\Values\Number;
+use Bachalang\Values\Value;
 
 class RuntimeResult
 {
@@ -15,9 +15,9 @@ class RuntimeResult
     ) {
     }
 
-    public function register(RuntimeResult $res)
+    public function register(RuntimeResult $res): RuntimeResult|Value
     {
-        if($res->error === null) {
+        if($res->error == null) {
             return $res->result;
         } else {
             $this->error = $res->error;
@@ -25,13 +25,13 @@ class RuntimeResult
         }
     }
 
-    public function success($result)
+    public function success(Value $result): RuntimeResult
     {
         $this->result = $result;
         return $this;
     }
 
-    public function failure($error)
+    public function failure(RuntimeError $error): RuntimeResult
     {
         $this->error = $error;
         return $this;

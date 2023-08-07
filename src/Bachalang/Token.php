@@ -13,7 +13,7 @@ class Token
         public TokenType $type,
         Position $posStart,
         ?Position $posEnd = null,
-        public $value = null
+        public mixed $value = null
     ) {
         if(!is_null($posStart)) {
             $this->posStart = $posStart->copy();

@@ -19,9 +19,12 @@ use Bachalang\Nodes\VarAccessNode;
 use Bachalang\Nodes\VarAssignNode;
 use Bachalang\Nodes\WhileNode;
 use Bachalang\Values\ArrayVal;
+use Bachalang\Values\BaseFunc;
+use Bachalang\Values\BuiltInFunc;
 use Bachalang\Values\Func;
 use Bachalang\Values\Number;
 use Bachalang\Values\StringVal;
+use Bachalang\Values\Value;
 use Exception;
 
 class Interpreter
@@ -107,7 +110,6 @@ class Interpreter
         $operationType = $node->opNode->type;
 
         if ($operationType->checkOperator()) {
-
             $operationMethod = $operationType->getOperator();
             $opResult = call_user_func_array([$left, $operationMethod], [$right]);
         } elseif ($node->opNode->matches(TokenType::KEYWORD, '&&')) {
@@ -188,7 +190,7 @@ class Interpreter
             return $result->success($elseValue);
         }
 
-        return $result->success(null);
+        return $result->success(new Number(Number::NULL));
     }
 
     private static function visitForNode(ForNode $node, Context $context): RuntimeResult
@@ -213,27 +215,30 @@ class Interpreter
             $stepValue = new Number(1);
         }
 
-        $i = $startValue->value;
+        if($startValue instanceof Number && $stepValue instanceof Number && $endValue instanceof Number) {
+            $i = $startValue->value;
 
-        if($stepValue->value >= 0) {
-            $condition = function () use ($i, $endValue) {
-                return $i < $endValue->value;
-            };
-        } else {
-            $condition = function () use ($i, $endValue) {
-                return $i > $endValue->value;
-            };
-        }
 
-        while($i < $endValue->value) {
-            $context->symbolTable->set($node->varNameToken->value, new Number($i));
-            $i += $stepValue->value;
-
-            array_push($elements, $result->register(Interpreter::visit($node->bodyNode, $context)));
-            if(!is_null($result->error)) {
-                return $result;
+            if($stepValue->value >= 0) {
+                $condition = function () use ($i, $endValue) {
+                    return $i < $endValue->value;
+                };
+            } else {
+                $condition = function () use ($i, $endValue) {
+                    return $i > $endValue->value;
+                };
             }
 
+            while($i < $endValue->value) {
+                $context->symbolTable->set($node->varNameToken->value, new Number($i));
+                $i += $stepValue->value;
+
+                array_push($elements, $result->register(Interpreter::visit($node->bodyNode, $context)));
+                if(!is_null($result->error)) {
+                    return $result;
+                }
+
+            }
         }
         return $result->success(
             (
@@ -301,14 +306,15 @@ class Interpreter
         if(!is_null($result->error)) {
             return $result;
         }
+        if($valueToCall instanceof Func || $valueToCall instanceof BuiltInFunc) {
+            $valueToCall = $valueToCall->copy()->setPosition($node->posStart, $node->posEnd)->setContext($context);
 
-        $valueToCall = $valueToCall->copy()->setPosition($node->posStart, $node->posEnd);
+            foreach ($node->argNodes as $value) {
+                array_push($args, $result->register(Interpreter::visit($value, $context)));
+            }
 
-        foreach ($node->argNodes as $value) {
-            array_push($args, $result->register(Interpreter::visit($value, $context)));
+            $returnValue = $result->register($valueToCall->execute($args));
         }
-
-        $returnValue = $result->register($valueToCall->execute($args));
         if(!is_null($result->error)) {
             return $result;
         }

@@ -20,14 +20,14 @@ class Value
         $this->setContext();
     }
 
-    public function setPosition(?Position $posStart = null, ?Position $posEnd = null): self
+    public function setPosition(?Position $posStart = null, ?Position $posEnd = null): static
     {
         $this->posStart = $posStart;
         $this->posEnd = $posEnd;
         return $this;
     }
 
-    public function setContext(Context $context = null): self
+    public function setContext(Context $context = null): static
     {
         $this->context = $context;
         return $this;
