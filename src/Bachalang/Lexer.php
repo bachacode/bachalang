@@ -69,7 +69,7 @@ class Lexer
             } elseif($this->currentChar == '&' || $this->currentChar == '|') {
                 array_push($tokens, $this->makeCompExprToken());
             } else {
-                $posStart = $this->pos->copy();
+                $posStart = clone $this->pos;
                 $char = $this->currentChar;
                 $this->advance();
                 $this->error = "ERROR: ".(string) new IllegalCharError(
@@ -86,7 +86,7 @@ class Lexer
     private function makeCompExprToken(): Token
     {
         $keywordValue = $this->currentChar;
-        $posStart = $this->pos->copy();
+        $posStart = clone $this->pos;
 
         $this->advance();
 
@@ -106,7 +106,7 @@ class Lexer
     private function makeIdentifier(): Token
     {
         $idStr = '';
-        $posStart = $this->pos->copy();
+        $posStart = clone $this->pos;
 
         while ($this->currentChar != null && str_contains(LETTERS_DIGITS . '_', $this->currentChar)) {
             $idStr .= $this->currentChar;
@@ -125,7 +125,7 @@ class Lexer
     public function makeString(): Token
     {
         $string = '';
-        $posStart = $this->pos->copy();
+        $posStart = clone $this->pos;
         $escapeChar = false;
         $this->advance();
 
@@ -174,7 +174,7 @@ class Lexer
 
     private function getTokenType(TokenType $firstType, TokenType $secondType, ?TokenType $thirdType = null): Token
     {
-        $posStart = $this->pos->copy();
+        $posStart = clone $this->pos;
         $this->advance();
         if($this->currentChar != null && str_contains('=', $this->currentChar)) {
             $this->advance();
@@ -191,7 +191,7 @@ class Lexer
     {
         $numString = '';
         $dotCount = 0;
-        $posStart = $this->pos->copy();
+        $posStart = clone $this->pos;
 
         while ($this->currentChar != null && str_contains(DIGITS . '.', $this->currentChar)) {
 

@@ -38,12 +38,4 @@ class Func extends BaseFunc
 
         return $result->success($value);
     }
-
-    public function copy(): Func
-    {
-        $copy = new Func($this->name, $this->bodyNode, $this->argNames);
-        $copy->setPosition($this->posStart, $this->posEnd);
-        $copy->setContext($this->context);
-        return $copy;
-    }
 }

@@ -29,12 +29,12 @@ use Exception;
 
 class Interpreter
 {
-    public static function visit(Node $node, Context $context): RuntimeError|RuntimeResult
+    public static function visit(Node &$node, Context &$context): RuntimeError|RuntimeResult
     {
         $methodName = "visit";
         $methodName .= basename(get_class($node));
         if(method_exists(Interpreter::class, $methodName)) {
-            return call_user_func_array([Interpreter::class, $methodName], [$node, $context]);
+            return call_user_func_array([Interpreter::class, $methodName], [&$node, &$context]);
         } else {
             Interpreter::noVisitMethod($methodName, $context);
         }
@@ -63,11 +63,29 @@ class Interpreter
         );
     }
 
+    private static function visitArrayNode(ArrayNode $node, Context $context): RuntimeError|RuntimeResult
+    {
+        $result = new RuntimeResult();
+        $elements = [];
+
+        foreach ($node->elementNodes as $value) {
+            $elements[] = $result->register(Interpreter::visit($value, $context));
+            if(!is_null($result->error)) {
+                return $result;
+            }
+        }
+        return $result->success(
+            (new ArrayVal($elements))
+            ->setContext($context)
+            ->setPosition($node->posStart, $node->posEnd)
+        );
+    }
+
     private static function visitVarAccessNode(VarAccessNode $node, Context $context): RuntimeError|RuntimeResult
     {
         $result = new RuntimeResult();
         $varName = $node->varNameToken->value;
-        $value = $context->symbolTable->get($varName);
+        $value = &$context->symbolTable->get($varName);
 
         if(is_null($value)) {
             return $result->failure(
@@ -79,7 +97,7 @@ class Interpreter
                 )
             );
         } else {
-            $value = ($value->copy())->setPosition($node->posStart, $node->posEnd)->setContext($context);
+            $value = $value->setPosition($node->posStart, $node->posEnd)->setContext($context);
             return $result->success($value);
         }
     }
@@ -144,24 +162,6 @@ class Interpreter
         } else {
             return $result->success($number->setPosition($node->posStart, $node->posEnd));
         }
-    }
-
-    private static function visitArrayNode(ArrayNode $node, Context $context): RuntimeError|RuntimeResult
-    {
-        $result = new RuntimeResult();
-        $elements = [];
-
-        foreach ($node->elementNodes as $value) {
-            array_push($elements, $result->register(Interpreter::visit($value, $context)));
-            if(!is_null($result->error)) {
-                return $result;
-            }
-        }
-        return $result->success(
-            (new ArrayVal($elements))
-            ->setContext($context)
-            ->setPosition($node->posStart, $node->posEnd)
-        );
     }
 
     private static function visitIfNode(IfNode $node, Context $context): RuntimeError|RuntimeResult
@@ -296,7 +296,7 @@ class Interpreter
         return $result->success($funcValue);
     }
 
-    private static function visitCallNode(CallNode $node, Context $context): RuntimeError|RuntimeResult
+    private static function visitCallNode(CallNode &$node, Context &$context): RuntimeError|RuntimeResult
     {
         $result = new RuntimeResult();
 
@@ -307,21 +307,16 @@ class Interpreter
             return $result;
         }
         if($valueToCall instanceof Func || $valueToCall instanceof BuiltInFunc) {
-            $valueToCall = $valueToCall->copy()->setPosition($node->posStart, $node->posEnd)->setContext($context);
+            $valueToCall = clone $valueToCall->setPosition($node->posStart, $node->posEnd);
 
             foreach ($node->argNodes as $value) {
-                array_push($args, $result->register(Interpreter::visit($value, $context)));
+                $args[] = $result->register(Interpreter::visit($value, $context));
             }
 
             $returnValue = $result->register($valueToCall->execute($args));
         }
         if(!is_null($result->error)) {
             return $result;
-        }
-        if($returnValue instanceof RuntimeResult) {
-            $returnValue = $returnValue->result->copy()->setPosition($node->posStart, $node->posEnd)->setContext($context);
-        } else {
-            $returnValue = $returnValue->copy()->setPosition($node->posStart, $node->posEnd)->setContext($context);
         }
         return $result->success($returnValue);
     }

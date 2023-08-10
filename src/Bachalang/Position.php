@@ -26,9 +26,4 @@ class Position
         }
         return $this;
     }
-
-    public function copy(): Position
-    {
-        return new Position($this->index, $this->line, $this->col, $this->fn, $this->ftxt);
-    }
 }

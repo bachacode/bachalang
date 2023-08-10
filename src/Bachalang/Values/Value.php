@@ -112,9 +112,4 @@ class Value
     {
         return new RuntimeError($this->posStart, $other->posEnd, 'Illegal Operation', $this->context);
     }
-
-    public function copy()
-    {
-        throw new Exception('No copy method defined');
-    }
 }

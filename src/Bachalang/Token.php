@@ -16,13 +16,13 @@ class Token
         public mixed $value = null
     ) {
         if(!is_null($posStart)) {
-            $this->posStart = $posStart->copy();
-            $this->posEnd = $posStart->copy();
+            $this->posStart = clone $posStart;
+            $this->posEnd = clone $posStart;
             $this->posEnd->advance();
         }
 
         if(!is_null($posEnd)) {
-            $this->posEnd = $posEnd->copy();
+            $this->posEnd = clone $posEnd;
         }
     }
 

@@ -21,7 +21,7 @@ class ArrayVal extends Value
 
     public function addedTo(Value $other): ArrayVal
     {
-        $newList = $this->copy();
+        $newList = &$this;
         array_push($newList->elements, $other);
         return $newList;
     }
@@ -29,7 +29,7 @@ class ArrayVal extends Value
     public function substractedBy(Value $other): ArrayVal|RuntimeError
     {
         if($other instanceof Number) {
-            $newList = $this->copy();
+            $newList = clone $this;
             try {
                 unset($newList[$other]);
                 return $newList;
@@ -54,13 +54,5 @@ class ArrayVal extends Value
         }
         $string .= ']';
         return $string;
-    }
-
-    public function copy(): ArrayVal
-    {
-        $copy = new ArrayVal($this->elements);
-        $copy->setPosition($this->posStart, $this->posEnd);
-        $copy->setContext($this->context);
-        return $copy;
     }
 }

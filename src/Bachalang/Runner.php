@@ -54,7 +54,6 @@ class Runner
             $this->lexer->error = null;
             return $error;
         }
-
         // Read tokens and make AST with them
         $this->parser = new Parser($tokens);
         // $this->parser->setTokens($tokens);

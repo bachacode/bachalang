@@ -9,6 +9,7 @@ use Bachalang\Errors\RuntimeError;
 use Bachalang\Interpreter;
 use Bachalang\Position;
 use Bachalang\RuntimeResult;
+use Exception;
 
 class BuiltInFunc extends BaseFunc
 {
@@ -47,15 +48,18 @@ class BuiltInFunc extends BaseFunc
         }
 
         if(method_exists($this, $methodName)) {
-            $returnValue = $this->$methodName($execContext);
+            $returnValue = $result->register($this->$methodName($execContext));
         } else {
             $this->noExecuteMethod($methodName, $execContext);
         }
         if(!is_null($result->error)) {
+            echo 'waos';
             return $result;
         }
 
-        return $result->success($returnValue->result);
+
+        return $result->success($returnValue);
+
     }
 
     private function noExecuteMethod($methodName)
@@ -132,8 +136,8 @@ class BuiltInFunc extends BaseFunc
     private function execute_append(Context $execContext): RuntimeResult
     {
         $result = new RuntimeResult();
-        $array = $execContext->symbolTable->get('array');
-        $value = $execContext->symbolTable->get('value');
+        $array = &$execContext->symbolTable->get('array');
+        $value = &$execContext->symbolTable->get('value');
 
         if(!$array instanceof ArrayVal) {
             return $result->failure(
@@ -145,7 +149,6 @@ class BuiltInFunc extends BaseFunc
                 )
             );
         }
-
         $array->elements[] = $value;
         return $result->success(new Number(Number::NULL));
     }
@@ -178,10 +181,7 @@ class BuiltInFunc extends BaseFunc
             );
         }
 
-        try {
-            $element = $array->elements[$index->value];
-            unset($array->elements[$index->value]);
-        } catch (\Throwable $th) {
+        if(count($array->elements) < $index->value) {
             return $result->failure(
                 new RuntimeError(
                     $this->posStart,
@@ -191,7 +191,10 @@ class BuiltInFunc extends BaseFunc
                 )
             );
         }
-        return $result->success($element);
+        $element = $array->elements[$index->value];
+        unset($array->elements[$index->value]);
+
+        return $result->success(new Number($element));
     }
 
     private function execute_extend(Context $execContext): RuntimeResult
@@ -224,14 +227,6 @@ class BuiltInFunc extends BaseFunc
 
         $array->elements = array_merge($array->elements, $secondArray->elements);
         return $result->success(new Number(Number::NULL));
-    }
-
-    public function copy(): BuiltInFunc
-    {
-        $copy = new BuiltInFunc($this->name);
-        $copy->setPosition($this->posStart, $this->posEnd);
-        $copy->setContext($this->context);
-        return $copy;
     }
 
     public function __toString(): string

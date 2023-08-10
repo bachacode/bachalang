@@ -32,7 +32,16 @@ class BaseFunc extends Value
         return $newContext;
     }
 
-    public function checkArgs($argNames, $args)
+    public function generateReferenceContext(): Context
+    {
+        $newContext = new Context($this->name, $this->context, $this->posStart);
+        $symbolTable = &$newContext->parent->symbolTable;
+        $newContext->symbolTable = new SymbolTable([], $symbolTable);
+
+        return $newContext;
+    }
+
+    public function checkArgs($argNames, &$args)
     {
         $result = new RuntimeResult();
         if(count($args) > count($argNames)) {
@@ -57,7 +66,7 @@ class BaseFunc extends Value
         return $result->success(new Number(Number::NULL));
     }
 
-    public function populateArgs($argNames, $args, $execContext)
+    public function populateArgs($argNames, &$args, $execContext)
     {
         $result = new RuntimeResult();
         foreach ($args as $key => $value) {
@@ -69,7 +78,7 @@ class BaseFunc extends Value
         return $result->success(new Number(Number::NULL));
     }
 
-    public function checkAndPopulateArgs($argNames, $args, $execContext)
+    public function checkAndPopulateArgs($argNames, &$args, $execContext)
     {
         $result = new RuntimeResult();
         $result->register($this->checkArgs($argNames, $args));
@@ -82,14 +91,6 @@ class BaseFunc extends Value
         }
 
         return $result->success(new Number(Number::NULL));
-    }
-
-    public function copy(): BaseFunc
-    {
-        $copy = new BaseFunc($this->name);
-        $copy->setPosition($this->posStart, $this->posEnd);
-        $copy->setContext($this->context);
-        return $copy;
     }
 
     public function __toString(): string

@@ -14,12 +14,13 @@ class SymbolTable
     ) {
     }
 
-    public function get(string $name): ?Value
+    public function &get(string $name): ?Value
     {
-        $value = $this->symbols[$name] ?? null;
+        $value = &$this->symbols[$name] ?? null;
 
         if($value == null && $this->parent != null) {
-            return $this->parent->get($name);
+            $var = &$this->parent->get($name);
+            return $var;
         } else {
             return $value;
         }

@@ -85,12 +85,4 @@ class StringVal extends Value
             return $this->propiedad;
         }
     }
-
-    public function copy(): StringVal
-    {
-        $copy = new StringVal($this->value);
-        $copy->setPosition($this->posStart, $this->posEnd);
-        $copy->setContext($this->context);
-        return $copy;
-    }
 }

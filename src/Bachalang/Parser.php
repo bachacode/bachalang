@@ -354,7 +354,7 @@ class Parser
     {
         $result = new ParseResult();
         $elementNodes = [];
-        $posStart = $this->currentToken->posStart->copy();
+        $posStart = clone $this->currentToken->posStart;
 
         if($this->currentToken->type != TokenType::LSQUARE) {
             return $result->failure(new InvalidSyntaxError(
@@ -402,7 +402,7 @@ class Parser
             $this->advance();
 
         }
-        return $result->success(new ArrayNode($elementNodes, $posStart, $this->currentToken->posEnd->copy()));
+        return $result->success(new ArrayNode($elementNodes, $posStart, clone $this->currentToken->posEnd));
     }
 
     private function ifExpr()

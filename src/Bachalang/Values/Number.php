@@ -168,12 +168,4 @@ class Number extends Value
             return $this->propiedad;
         }
     }
-
-    public function copy(): Number
-    {
-        $copy = new Number($this->value);
-        $copy->setPosition($this->posStart, $this->posEnd);
-        $copy->setContext($this->context);
-        return $copy;
-    }
 }
