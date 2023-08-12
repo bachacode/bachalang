@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-require_once('./constants.php');
-require_once('./autoloader.php');
+require './constants.php';
+require 'vendor/autoload.php';
 
 use Bachalang\Runner;
 

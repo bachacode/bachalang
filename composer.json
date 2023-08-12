@@ -1,0 +1,24 @@
+{
+    "name": "bachacode/bachalang",
+    "description": "An interpreted programming language built in PHP 8",
+    "type": "project",
+    "license": "MIT",
+    "scripts": {
+        "test": "./vendor/bin/phpunit tests --testdox"
+    },
+    "autoload": {
+        "psr-4": {
+            "Bachalang\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "bachacode",
+            "email": "bachacode@gmail.com"
+        }
+    ],
+    "require": {},
+    "require-dev": {
+        "phpunit/phpunit": "^10"
+    }
+}
