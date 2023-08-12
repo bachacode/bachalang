@@ -427,11 +427,11 @@ class Parser
             return $result;
         }
 
-        if(!$this->currentToken->matches(TokenType::KEYWORD, 'then')) {
+        if($this->currentToken->type != TokenType::LCURLY) {
             return $result->failure(new InvalidSyntaxError(
                 $this->currentToken->posStart,
                 $this->currentToken->posEnd,
-                "Expected 'then' keyword after 'if'"
+                "Expected '{' keyword after 'if'"
             ));
         }
 
@@ -442,7 +442,19 @@ class Parser
         if(!is_null($result->error)) {
             return $result;
         }
-        array_push($cases, [$condition, $expr]);
+
+        if($this->currentToken->type != TokenType::RCURLY) {
+            return $result->failure(new InvalidSyntaxError(
+                $this->currentToken->posStart,
+                $this->currentToken->posEnd,
+                "Expected '}' keyword after if expression"
+            ));
+        }
+
+        $result->registerAdvancement();
+        $this->advance();
+
+        $cases[] = [$condition, $expr];
 
         while ($this->currentToken->matches(TokenType::KEYWORD, 'elseif')) {
             $result->registerAdvancement();
@@ -453,11 +465,11 @@ class Parser
                 return $result;
             }
 
-            if(!$this->currentToken->matches(TokenType::KEYWORD, 'then')) {
+            if($this->currentToken->type != TokenType::LCURLY) {
                 return $result->failure(new InvalidSyntaxError(
                     $this->currentToken->posStart,
                     $this->currentToken->posEnd,
-                    "Expected 'then' keyword after 'elseif'"
+                    "Expected '{' keyword after 'elseif'"
                 ));
             }
 
@@ -468,10 +480,30 @@ class Parser
             if(!is_null($result->error)) {
                 return $result;
             }
-            array_push($cases, [$condition, $expr]);
+
+            if($this->currentToken->type != TokenType::RCURLY) {
+                return $result->failure(new InvalidSyntaxError(
+                    $this->currentToken->posStart,
+                    $this->currentToken->posEnd,
+                    "Expected '}' keyword after elseif expression"
+                ));
+            }
+
+            $cases = [$condition, $expr];
         }
 
         if($this->currentToken->matches(TokenType::KEYWORD, 'else')) {
+            $result->registerAdvancement();
+            $this->advance();
+
+            if($this->currentToken->type != TokenType::LCURLY) {
+                return $result->failure(new InvalidSyntaxError(
+                    $this->currentToken->posStart,
+                    $this->currentToken->posEnd,
+                    "Expected '{' keyword after 'elseif'"
+                ));
+            }
+
             $result->registerAdvancement();
             $this->advance();
 
@@ -479,6 +511,17 @@ class Parser
             if(!is_null($result->error)) {
                 return $result;
             }
+
+            if($this->currentToken->type != TokenType::RCURLY) {
+                return $result->failure(new InvalidSyntaxError(
+                    $this->currentToken->posStart,
+                    $this->currentToken->posEnd,
+                    "Expected '}' keyword after elseif expression"
+                ));
+            }
+
+            $result->registerAdvancement();
+            $this->advance();
             $elseCase = $expr;
         }
 

@@ -23,7 +23,10 @@ enum TokenType: string
     case RPAREN = 'RPAREN';
     case LSQUARE = 'LSQUARE';
     case RSQUARE = 'RSQUARE';
+    case LCURLY = 'LCURLY';
+    case RCURLY = 'RCURLY';
     case DQUOTES = 'DQUOTES';
+
     // Operators
     case PLUS = 'PLUS';
     case MINUS = 'MINUS';
@@ -59,6 +62,8 @@ enum TokenType: string
             ')' => TokenType::RPAREN,
             '[' => TokenType::LSQUARE,
             ']' => TokenType::RSQUARE,
+            '{' => TokenType::LCURLY,
+            '}' => TokenType::RCURLY,
             ',' => TokenType::COMMA,
         };
     }
@@ -66,7 +71,7 @@ enum TokenType: string
     public static function checkToken(mixed $char): bool
     {
         return match($char) {
-            '+', '-', '*', '/', '^', '(', ')', '[', ']', ','  => true,
+            '+', '-', '*', '/', '^', '(', ')', '[', ']', '{', '}', ','  => true,
             default => false
         };
     }

@@ -59,11 +59,11 @@ class Lexer
             } elseif($this->ch == '!') {
                 $this->tokens[] = $this->makeNotEqualOrNot();
             } elseif($this->ch == '<') {
-                $this->tokens = $this->makeLessThan();
+                $this->tokens[] = $this->makeLessThan();
             } elseif($this->ch == '>') {
-                $this->tokens = $this->makeGreaterThan();
+                $this->tokens[] = $this->makeGreaterThan();
             } elseif($this->ch == '&' || $this->ch == '|') {
-                $this->tokens = $this->makeCompExpr();
+                $this->tokens[] = $this->makeCompExpr();
             } else {
                 $posStart = clone $this->pos;
                 $char = $this->ch;
