@@ -41,12 +41,12 @@ class Runner
         );
     }
 
-    public function run(string $text)
+    public function run(string &$text)
     {
         // Read text and make tokens with it
         $this->lexer = new Lexer('<stdin>', $text);
         // $this->lexer->setText($text);
-        $tokens = $this->lexer->makeTokens();
+        $tokens = &$this->lexer->makeTokens();
 
         // Check for InvalidSyntaxErrors
         if(!is_null($this->lexer->error)) {

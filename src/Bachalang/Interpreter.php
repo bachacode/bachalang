@@ -19,12 +19,10 @@ use Bachalang\Nodes\VarAccessNode;
 use Bachalang\Nodes\VarAssignNode;
 use Bachalang\Nodes\WhileNode;
 use Bachalang\Values\ArrayVal;
-use Bachalang\Values\BaseFunc;
 use Bachalang\Values\BuiltInFunc;
 use Bachalang\Values\Func;
 use Bachalang\Values\Number;
 use Bachalang\Values\StringVal;
-use Bachalang\Values\Value;
 use Exception;
 
 class Interpreter
@@ -33,6 +31,7 @@ class Interpreter
     {
         $methodName = "visit";
         $methodName .= basename(get_class($node));
+
         if(method_exists(Interpreter::class, $methodName)) {
             return call_user_func_array([Interpreter::class, $methodName], [&$node, &$context]);
         } else {

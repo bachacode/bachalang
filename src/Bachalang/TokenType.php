@@ -6,21 +6,39 @@ namespace Bachalang;
 
 enum TokenType: string
 {
-    case INT = 'INT';
-    case FLOAT = 'FLOAT';
-    case STRING = 'STRING';
-    case IDENTIFIER = 'IDENTIFIER';
-    case KEYWORD = 'KEYWORD';
+    case ILLEGAL = 'ILLEGAL';
+    case EOF = 'EOF';
+
+    // Identifiers + literals
+    case IDENTIFIER = 'IDENTIFIER'; // add, foobar, x, y, ...
+    case INT = 'INT'; // 1343456
+    case FLOAT = 'FLOAT'; // 3.14
+    case STRING = 'STRING'; // "Hello World"
+
+    // Delimiters
+    case COMMA = 'COMMA';
+    case SEMICOLON = 'SEMICOLON';
+
+    case LPAREN = 'LPAREN';
+    case RPAREN = 'RPAREN';
+    case LSQUARE = 'LSQUARE';
+    case RSQUARE = 'RSQUARE';
+    case DQUOTES = 'DQUOTES';
+    // Operators
     case PLUS = 'PLUS';
     case MINUS = 'MINUS';
     case MUL = 'MUL';
     case DIV = 'DIV';
     case POW = 'POW';
-    case LPAREN = 'LPAREN';
-    case RPAREN = 'RPAREN';
-    case LSQUARE = 'LSQUARE';
-    case RSQUARE = 'RSQUARE';
     case EQUALS = 'EQUALS';
+
+    // Keywords
+    case FUNCTION = "FUNCTION";
+    case LET = "LET";
+    case KEYWORD = 'KEYWORD';
+    case ARROW = 'ARROW';
+
+    // Comparators
     case EE = 'EE';
     case NOT = 'NOT';
     case NE = 'NE';
@@ -28,11 +46,8 @@ enum TokenType: string
     case GT = 'GT';
     case LTE = 'LTE';
     case GTE = 'GTE';
-    case COMMA = 'COMMA';
-    case ARROW = 'ARROW';
-    case EOF = 'EOF';
 
-    public static function getToken(string $char): TokenType
+    public static function getTokenType(string $char): TokenType
     {
         return match($char) {
             '+' => TokenType::PLUS,

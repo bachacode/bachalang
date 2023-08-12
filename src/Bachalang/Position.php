@@ -15,7 +15,7 @@ class Position
     ) {
     }
 
-    public function advance(?string $currentChar = null): self
+    public function advance(?string $currentChar = null): static
     {
         $this->index++;
         $this->col++;

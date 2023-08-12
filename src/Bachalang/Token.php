@@ -13,7 +13,7 @@ class Token
         public TokenType $type,
         Position $posStart,
         ?Position $posEnd = null,
-        public mixed $value = null
+        public int|float|string|null $value = null
     ) {
         if(!is_null($posStart)) {
             $this->posStart = clone $posStart;

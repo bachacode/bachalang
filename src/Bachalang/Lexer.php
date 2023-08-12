@@ -13,64 +13,60 @@ class Lexer
     public Position $posStart;
     public Position $posEnd;
 
+    /**
+     * @var Token[]
+     */
+    public array $tokens = [];
+
     public function __construct(
         private string $fn,
         private string $text,
-        private ?string $currentChar = null,
+        private ?string $ch = null,
         public ?string $error = null
     ) {
         $this->pos = new Position(-1, 0, -1, $fn, $this->text);
         $this->advance();
     }
 
-    public function setText(string $text): void
-    {
-        $this->pos = new Position(-1, 0, -1, $this->fn, $this->text);
-        $this->text = $text;
-        $this->advance();
-    }
-
     private function advance(): void
     {
-        $this->pos->advance($this->currentChar);
+        $this->pos->advance($this->ch);
         if($this->pos->index < strlen($this->text)) {
-            $this->currentChar = $this->text[$this->pos->index];
+            $this->ch = $this->text[$this->pos->index];
         } else {
-            $this->currentChar = null;
+            $this->ch = null;
         }
     }
 
-    public function makeTokens(): array
+    /**
+     * @return Token[]
+     */
+    public function &makeTokens(): array
     {
-        $tokens = [];
-
-        while ($this->currentChar != null && $this->error == null) {
-            if(ctype_space($this->currentChar)) {
+        while ($this->ch != null && $this->error == null) {
+            if(ctype_space($this->ch)) {
                 $this->advance();
-            } elseif (str_contains(LETTERS, $this->currentChar)) {
-                array_push($tokens, $this->makeIdentifier());
-                // $this->advance();
-            } elseif ($this->currentChar == '"') {
-                array_push($tokens, $this->makeString());
-                // $this->advance();
-            } elseif (TokenType::checkToken(($this->currentChar))) {
-                array_push($tokens, new Token(TokenType::getToken($this->currentChar), $this->pos));
-                $this->advance();
-            } elseif(str_contains(DIGITS, $this->currentChar)) {
-                array_push($tokens, $this->makeNumber());
-            } elseif($this->currentChar == '=') {
-                array_push($tokens, $this->makeEquals());
-            } elseif($this->currentChar == '!') {
-                array_push($tokens, $this->makeNotEqualOrNot());
-            } elseif($this->currentChar == '<') {
-                array_push($tokens, $this->makeLessThan());
-            } elseif($this->currentChar == '>') {
-                array_push($tokens, $this->makeGreaterThan());
-            } elseif($this->currentChar == '&' || $this->currentChar == '|') {
-                array_push($tokens, $this->makeCompExprToken());
+            } elseif (str_contains(LETTERS, $this->ch)) {
+                $this->tokens[] = $this->makeIdentifier();
+            } elseif ($this->ch == '"') {
+                $this->tokens[] = $this->makeString();
+            } elseif (TokenType::checkToken(($this->ch))) {
+                $this->tokens[] = $this->makeDelOrOps();
+            } elseif(str_contains(DIGITS, $this->ch)) {
+                $this->tokens[] = $this->makeNumber();
+            } elseif($this->ch == '=') {
+                $this->tokens[] = $this->makeEquals();
+            } elseif($this->ch == '!') {
+                $this->tokens[] = $this->makeNotEqualOrNot();
+            } elseif($this->ch == '<') {
+                $this->tokens = $this->makeLessThan();
+            } elseif($this->ch == '>') {
+                $this->tokens = $this->makeGreaterThan();
+            } elseif($this->ch == '&' || $this->ch == '|') {
+                $this->tokens = $this->makeCompExpr();
             } else {
                 $posStart = clone $this->pos;
-                $char = $this->currentChar;
+                $char = $this->ch;
                 $this->advance();
                 $this->error = "ERROR: ".(string) new IllegalCharError(
                     $posStart,
@@ -79,25 +75,33 @@ class Lexer
                 ) . PHP_EOL;
             }
         }
-        array_push($tokens, new Token(TokenType::EOF, $this->pos));
-        return $tokens;
+        $this->tokens[] = new Token(TokenType::EOF, $this->pos);
+        return $this->tokens;
     }
 
-    private function makeCompExprToken(): Token
+    private function makeDelOrOps()
     {
-        $keywordValue = $this->currentChar;
+        $char = $this->ch;
+        $posStart = clone $this->pos;
+        $this->advance();
+        return new Token(TokenType::getTokenType($char), $posStart);
+    }
+
+    private function makeCompExpr(): Token
+    {
+        $keywordValue = $this->ch;
         $posStart = clone $this->pos;
 
         $this->advance();
 
-        if($this->currentChar == null || !str_contains($this->currentChar, $keywordValue)) {
+        if($this->ch == null || !str_contains($this->ch, $keywordValue)) {
             $this->error = "ERROR: ".(string) new ExpectedCharError(
                 $posStart,
                 $this->pos,
-                "The following character is not permited >> '{$this->currentChar}' after '{$keywordValue}'"
+                "The following character is not permited >> '{$this->ch}' after '{$keywordValue}'"
             ) . PHP_EOL;
         }
-        $keywordValue .= $this->currentChar;
+        $keywordValue .= $this->ch;
         $this->advance();
         return new Token(TokenType::KEYWORD, $posStart, $this->pos, $keywordValue);
 
@@ -108,8 +112,8 @@ class Lexer
         $idStr = '';
         $posStart = clone $this->pos;
 
-        while ($this->currentChar != null && str_contains(LETTERS_DIGITS . '_', $this->currentChar)) {
-            $idStr .= $this->currentChar;
+        while ($this->ch != null && str_contains(LETTERS_DIGITS . '_', $this->ch)) {
+            $idStr .= $this->ch;
             $this->advance();
         }
 
@@ -134,15 +138,15 @@ class Lexer
             't' => '\t'
         ];
 
-        while ($this->currentChar != null && $this->currentChar != '"' || $escapeChar == true) {
+        while ($this->ch != null && $this->ch != '"' || $escapeChar == true) {
             if($escapeChar == true) {
-                $string .= $escapeCharacters[$this->currentChar] ?? $this->currentChar;
+                $string .= $escapeCharacters[$this->ch] ?? $this->ch;
                 $escapeChar = false;
             } else {
-                if($this->currentChar == '\\') {
+                if($this->ch == '\\') {
                     $escapeChar = true;
                 } else {
-                    $string .= $this->currentChar;
+                    $string .= $this->ch;
                 }
             }
             $this->advance();
@@ -176,10 +180,10 @@ class Lexer
     {
         $posStart = clone $this->pos;
         $this->advance();
-        if($this->currentChar != null && str_contains('=', $this->currentChar)) {
+        if($this->ch != null && str_contains('=', $this->ch)) {
             $this->advance();
             return new Token($firstType, $posStart, $this->pos);
-        } elseif(!is_null($thirdType) && str_contains('>', $this->currentChar)) {
+        } elseif(!is_null($thirdType) && str_contains('>', $this->ch)) {
             $this->advance();
             return new Token($thirdType, $posStart, $this->pos);
         } else {
@@ -193,16 +197,16 @@ class Lexer
         $dotCount = 0;
         $posStart = clone $this->pos;
 
-        while ($this->currentChar != null && str_contains(DIGITS . '.', $this->currentChar)) {
+        while ($this->ch != null && str_contains(DIGITS . '.', $this->ch)) {
 
-            if($this->currentChar === '.') {
+            if($this->ch === '.') {
                 if ($dotCount == 1) {
                     break;
                 }
                 $dotCount++;
                 $numString .= '.';
             } else {
-                $numString .= $this->currentChar;
+                $numString .= $this->ch;
             }
             $this->advance();
 
