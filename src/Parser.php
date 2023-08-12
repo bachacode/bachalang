@@ -66,7 +66,7 @@ class Parser
     {
         $result = new ParseResult();
         // #1 Priority - Variable definitions
-        if($this->currentToken->matches(TokenType::KEYWORD, 'var')) {
+        if($this->currentToken->matches(TokenType::KEYWORD, 'let')) {
             $result->registerAdvancement();
             $this->advance();
 
@@ -489,7 +489,10 @@ class Parser
                 ));
             }
 
-            $cases = [$condition, $expr];
+            $result->registerAdvancement();
+            $this->advance();
+
+            $cases[] = [$condition, $expr];
         }
 
         if($this->currentToken->matches(TokenType::KEYWORD, 'else')) {
@@ -599,11 +602,11 @@ class Parser
             $stepValue = null;
         }
 
-        if(!$this->currentToken->matches(TokenType::KEYWORD, 'then')) {
+        if($this->currentToken->type != TokenType::LCURLY) {
             return $result->failure(new InvalidSyntaxError(
                 $this->currentToken->posStart,
                 $this->currentToken->posEnd,
-                "Expected 'then' after expression"
+                "Expected '{' keyword after expression"
             ));
         }
 
@@ -614,6 +617,17 @@ class Parser
         if(!is_null($result->error)) {
             return $result;
         }
+
+        if($this->currentToken->type != TokenType::RCURLY) {
+            return $result->failure(new InvalidSyntaxError(
+                $this->currentToken->posStart,
+                $this->currentToken->posEnd,
+                "Expected '}' keyword after expression"
+            ));
+        }
+
+        $result->registerAdvancement();
+        $this->advance();
 
         return $result->success(new ForNode($varName, $startValue, $endValue, $stepValue, $bodyNode));
     }
