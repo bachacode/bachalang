@@ -41,7 +41,7 @@ class Lexer
     /**
      * @return Token[]
      */
-    public function &makeTokens(): array
+    public function makeTokens(): array
     {
         while ($this->ch != null && $this->error == null) {
             if(ctype_space($this->ch)) {
