@@ -652,11 +652,11 @@ class Parser
             return $result;
         }
 
-        if(!$this->currentToken->matches(TokenType::KEYWORD, 'then')) {
+        if($this->currentToken->type != TokenType::LCURLY) {
             return $result->failure(new InvalidSyntaxError(
                 $this->currentToken->posStart,
                 $this->currentToken->posEnd,
-                "Expected 'then' keyword after expression"
+                "Expected '{' keyword after expression"
             ));
         }
 
@@ -667,6 +667,17 @@ class Parser
         if(!is_null($result->error)) {
             return $result;
         }
+
+        if($this->currentToken->type != TokenType::RCURLY) {
+            return $result->failure(new InvalidSyntaxError(
+                $this->currentToken->posStart,
+                $this->currentToken->posEnd,
+                "Expected '}' keyword after expression"
+            ));
+        }
+
+        $result->registerAdvancement();
+        $this->advance();
 
         return $result->success(new WhileNode($condition, $bodyNode));
     }
