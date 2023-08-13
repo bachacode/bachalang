@@ -166,27 +166,27 @@ class Interpreter
     private static function visitIfNode(IfNode $node, Context $context): RuntimeError|RuntimeResult
     {
         $result = new RuntimeResult();
-        foreach ($node->cases as [$condition, $expr]) {
+        foreach ($node->cases as [$condition, $expr ]) {
             $conditionValue = $result->register(Interpreter::visit($condition, $context));
             if(!is_null($result->error)) {
                 return $result;
             }
 
             if($conditionValue->isTrue()) {
-                $exprValue = $result->register(Interpreter::visit($expr, $context));
+                $result->register(Interpreter::visit($expr, $context));
                 if(!is_null($result->error)) {
                     return $result;
                 }
-                return $result->success($exprValue);
+                return $result->success(new Number(Number::NULL));
             }
         }
 
         if(!is_null($node->elseCase)) {
-            $elseValue = $result->register(Interpreter::visit($node->elseCase, $context));
+            $result->register(Interpreter::visit($node->elseCase, $context));
             if(!is_null($result->error)) {
                 return $result;
             }
-            return $result->success($elseValue);
+            return $result->success(new Number(Number::NULL));
         }
 
         return $result->success(new Number(Number::NULL));
@@ -239,12 +239,7 @@ class Interpreter
 
             }
         }
-        return $result->success(
-            (
-            new ArrayVal($elements))
-            ->setContext($context)
-            ->setPosition($node->posStart, $node->posEnd)
-        );
+        return $result->success(new Number(Number::NULL));
     }
 
     private static function visitWhileNode(WhileNode $node, Context $context): RuntimeError|RuntimeResult
@@ -265,12 +260,7 @@ class Interpreter
                 return $result;
             }
         }
-        return $result->success(
-            (
-            new ArrayVal($elements))
-            ->setContext($context)
-            ->setPosition($node->posStart, $node->posEnd)
-        );
+        return $result->success(new Number(Number::NULL));
     }
 
     private static function visitFuncDefNode(FuncDefNode $node, Context $context): RuntimeError|RuntimeResult
