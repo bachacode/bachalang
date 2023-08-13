@@ -80,6 +80,20 @@ class Interpreter
         );
     }
 
+    private static function visitVarAssignNode(VarAssignNode $node, Context $context): RuntimeResult
+    {
+        $result = new RuntimeResult();
+        $varName = $node->varNameToken->value;
+        $value = $result->register(Interpreter::visit($node->valueNode, $context));
+        if($result->error != null) {
+            return $result;
+        }
+
+        $context->symbolTable->set($varName, $value);
+        return $result->success($value);
+
+    }
+
     private static function visitVarAccessNode(VarAccessNode $node, Context $context): RuntimeError|RuntimeResult
     {
         $result = new RuntimeResult();
@@ -99,20 +113,6 @@ class Interpreter
             $value = $value->setPosition($node->posStart, $node->posEnd)->setContext($context);
             return $result->success($value);
         }
-    }
-
-    private static function visitVarAssignNode(VarAssignNode $node, Context $context): RuntimeResult
-    {
-        $result = new RuntimeResult();
-        $varName = $node->varNameToken->value;
-        $value = $result->register(Interpreter::visit($node->valueNode, $context));
-        if($result->error != null) {
-            return $result;
-        }
-
-        $context->symbolTable->set($varName, $value);
-        return $result->success($value);
-
     }
 
     private static function visitBinOpNode(BinOpNode $node, Context $context): RuntimeError|RuntimeResult

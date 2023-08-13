@@ -6,9 +6,6 @@ use Bachalang\Lexer;
 use Bachalang\TokenType;
 use PHPUnit\Framework\TestCase;
 
-/**
- * @backupGlobals
- */
 final class LexerTest extends TestCase
 {
     protected $backupGlobals = true;

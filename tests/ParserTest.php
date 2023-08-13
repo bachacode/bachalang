@@ -369,26 +369,7 @@ final class ParserTest extends TestCase
         $this->assertNull($ast->error);
     }
 
-    public function testCanParseFuncDef(): void
-    {
-        // Test text for the lexer to read
-        $text = 'function sum(a,b) => a + b';
-
-        // Making lexer with the test text
-        $lexer = new Lexer('<stdin>', $text);
-
-        // Making tokens and checking for errors
-        $tokens = $lexer->makeTokens();
-
-        // Read tokens and make AST with them
-        $parser = new Parser($tokens);
-        $ast = $parser->run();
-
-        // If there was no errors, everything works fine
-        $this->assertNull($ast->error);
-    }
-
-    public function testCanParseCalls(): void
+    public function testCanParseFuncDefAndParseCalls(): void
     {
         $texts = [
             'function sum(a,b) => a + b',
@@ -404,9 +385,9 @@ final class ParserTest extends TestCase
             // Read tokens and make AST with them
             $parser = new Parser($tokens);
             $ast = $parser->run();
-        }
 
-        // If there was no errors, everything works fine
-        $this->assertNull($ast->error);
+            // If there was no errors, everything works fine
+            $this->assertNull($ast->error);
+        }
     }
 }
