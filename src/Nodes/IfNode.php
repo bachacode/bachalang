@@ -8,7 +8,7 @@ class IfNode extends Node
 {
     public function __construct(
         public array $cases,
-        public $elseCase,
+        public ?Node $elseCase,
     ) {
         $this->posStart = $cases[0][0]->posStart;
         $this->posEnd = ($elseCase ?? array_slice($cases, -1)[0][0])->posEnd;

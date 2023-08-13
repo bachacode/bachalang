@@ -10,8 +10,8 @@ class ArrayNode extends Node
 {
     public function __construct(
         public array $elementNodes,
-        public ?Position $posStart,
-        public ?Position $posEnd,
+        public ?Position $posStart = null,
+        public ?Position $posEnd = null,
     ) {
     }
 }

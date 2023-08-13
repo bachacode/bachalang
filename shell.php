@@ -17,10 +17,10 @@ while (true) {
     $result = $runner->run($text);
 
     if(!is_null($result)) {
-        if (count($result->elements) == 1) {
-            echo $result->elements[0] . PHP_EOL;
-        } else {
+        if(!isset($result->elements)) {
             echo $result . PHP_EOL;
+        } elseif(count($result->elements) == 1) {
+            echo $result->elements[0] . PHP_EOL;
         }
     }
 }

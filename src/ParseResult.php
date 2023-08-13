@@ -43,13 +43,13 @@ class ParseResult
         $this->advanceCount++;
     }
 
-    public function success(Node $node): static
+    public function success(?Node $node): static
     {
         $this->node = $node;
         return $this;
     }
 
-    public function failure($error): static
+    public function failure(InvalidSyntaxError $error): static
     {
         if($this->error == null || $this->advanceCount == 0) {
             $this->error = $error;

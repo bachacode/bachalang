@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Bachalang;
 
 use Bachalang\Errors\InvalidSyntaxError;
+use Bachalang\Helpers\StringHelper;
 use Bachalang\Nodes\ArrayNode;
 use Bachalang\Nodes\BinOpNode;
 use Bachalang\Nodes\CallNode;
@@ -17,7 +18,6 @@ use Bachalang\Nodes\UnaryOpNode;
 use Bachalang\Nodes\VarAccessNode;
 use Bachalang\Nodes\VarAssignNode;
 use Bachalang\Nodes\WhileNode;
-use Bachalang\Values\ArrayVal;
 
 class Parser
 {
@@ -467,14 +467,81 @@ class Parser
     private function ifExpr(): ParseResult
     {
         $result = new ParseResult();
-        $cases = [];
+        $cases = $result->register($this->ifExprCases('if'));
+
+        if(!is_null($result->error)) {
+            return $result;
+        }
+
+        $elseCase = $result->register($this->elseExpr());
+        if(!is_null($result->error)) {
+            return $result;
+        }
+        if($cases instanceof ArrayNode) {
+            return $result->success(new IfNode($cases->elementNodes, $elseCase));
+        }
+    }
+
+    private function elseIfExpr(): ParseResult
+    {
+        return $this->ifExprCases('elseif');
+    }
+
+    private function elseExpr(): ParseResult
+    {
+        $result = new ParseResult();
         $elseCase = null;
 
-        if(!$this->currentToken->matches(TokenType::KEYWORD, 'if')) {
+        if(!$this->currentToken->matches(TokenType::KEYWORD, 'else')) {
+            return $result->success($elseCase);
+        }
+
+        $result->registerAdvancement();
+        $this->advance();
+
+        if($this->currentToken->type != TokenType::LCURLY) {
             return $result->failure(new InvalidSyntaxError(
                 $this->currentToken->posStart,
                 $this->currentToken->posEnd,
-                "Expected 'if' keyword"
+                "Expected '{' keyword after 'else'"
+            ));
+        }
+
+        $result->registerAdvancement();
+        $this->advance();
+
+
+        $statements = $result->register($this->statements());
+        if(!is_null($result->error)) {
+            return $result;
+        }
+        $elseCase = $statements;
+
+        if($this->currentToken->type != TokenType::RCURLY) {
+            return $result->failure(new InvalidSyntaxError(
+                $this->currentToken->posStart,
+                $this->currentToken->posEnd,
+                "Expected '}' keyword after 'else' expression"
+            ));
+
+        }
+
+        $result->registerAdvancement();
+        $this->advance();
+
+        return $result->success($elseCase);
+    }
+
+    private function ifExprCases(string $caseKeyword): ParseResult
+    {
+        $result = new ParseResult();
+        $cases = [];
+        $posStart = clone $this->currentToken->posStart;
+        if(!$this->currentToken->matches(TokenType::KEYWORD, $caseKeyword)) {
+            return $result->failure(new InvalidSyntaxError(
+                $this->currentToken->posStart,
+                $this->currentToken->posEnd,
+                "Expected {$caseKeyword} keyword"
             ));
         }
 
@@ -490,104 +557,45 @@ class Parser
             return $result->failure(new InvalidSyntaxError(
                 $this->currentToken->posStart,
                 $this->currentToken->posEnd,
-                "Expected '{' keyword after 'if'"
+                "Expected '{' after {$caseKeyword} expression"
             ));
         }
 
         $result->registerAdvancement();
         $this->advance();
 
-        $expr = $result->register($this->expr());
+        $statements = $result->register($this->statements());
         if(!is_null($result->error)) {
             return $result;
         }
+
+        $cases[] = [$condition, $statements, true];
 
         if($this->currentToken->type != TokenType::RCURLY) {
             return $result->failure(new InvalidSyntaxError(
                 $this->currentToken->posStart,
                 $this->currentToken->posEnd,
-                "Expected '}' keyword after if expression"
+                "Expected '}' keyword after {$caseKeyword} expression"
             ));
         }
 
         $result->registerAdvancement();
         $this->advance();
 
-        $cases[] = [$condition, $expr];
+        if($this->currentToken->matches(TokenType::KEYWORD, 'elseif')) {
+            $extraCases = $result->register($this->elseIfExpr());
 
-        while ($this->currentToken->matches(TokenType::KEYWORD, 'elseif')) {
-            $result->registerAdvancement();
-            $this->advance();
-
-            $condition = $result->register($this->expr());
             if(!is_null($result->error)) {
                 return $result;
             }
+            if($extraCases instanceof ArrayNode) {
+                $newCases = $extraCases->elementNodes;
 
-            if($this->currentToken->type != TokenType::LCURLY) {
-                return $result->failure(new InvalidSyntaxError(
-                    $this->currentToken->posStart,
-                    $this->currentToken->posEnd,
-                    "Expected '{' keyword after 'elseif'"
-                ));
             }
-
-            $result->registerAdvancement();
-            $this->advance();
-
-            $expr = $result->register($this->expr());
-            if(!is_null($result->error)) {
-                return $result;
-            }
-
-            if($this->currentToken->type != TokenType::RCURLY) {
-                return $result->failure(new InvalidSyntaxError(
-                    $this->currentToken->posStart,
-                    $this->currentToken->posEnd,
-                    "Expected '}' keyword after elseif expression"
-                ));
-            }
-
-            $result->registerAdvancement();
-            $this->advance();
-
-            $cases[] = [$condition, $expr];
+            $cases = array_merge($cases, $newCases);
         }
 
-        if($this->currentToken->matches(TokenType::KEYWORD, 'else')) {
-            $result->registerAdvancement();
-            $this->advance();
-
-            if($this->currentToken->type != TokenType::LCURLY) {
-                return $result->failure(new InvalidSyntaxError(
-                    $this->currentToken->posStart,
-                    $this->currentToken->posEnd,
-                    "Expected '{' keyword after 'elseif'"
-                ));
-            }
-
-            $result->registerAdvancement();
-            $this->advance();
-
-            $expr = $result->register($this->expr());
-            if(!is_null($result->error)) {
-                return $result;
-            }
-
-            if($this->currentToken->type != TokenType::RCURLY) {
-                return $result->failure(new InvalidSyntaxError(
-                    $this->currentToken->posStart,
-                    $this->currentToken->posEnd,
-                    "Expected '}' keyword after elseif expression"
-                ));
-            }
-
-            $result->registerAdvancement();
-            $this->advance();
-            $elseCase = $expr;
-        }
-
-        return $result->success(new IfNode($cases, $elseCase));
+        return $result->success(new ArrayNode($cases, $posStart));
     }
 
     private function forExpr(): ParseResult
