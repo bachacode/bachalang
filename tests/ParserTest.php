@@ -21,7 +21,7 @@ final class ParserTest extends TestCase
 
         // Read tokens and make AST with them
         $parser = new Parser($tokens);
-        $ast = $parser->run();
+        $ast = $parser->parse();
 
         // If there was no errors, everything works fine
         $this->assertNull($ast->error);
@@ -40,7 +40,7 @@ final class ParserTest extends TestCase
 
         // Read tokens and make AST with them
         $parser = new Parser($tokens);
-        $ast = $parser->run();
+        $ast = $parser->parse();
 
         // If there was no errors, everything works fine
         $this->assertNull($ast->error);
@@ -59,7 +59,7 @@ final class ParserTest extends TestCase
 
         // Read tokens and make AST with them
         $parser = new Parser($tokens);
-        $ast = $parser->run();
+        $ast = $parser->parse();
 
         // If there was no errors, everything works fine
         $this->assertNull($ast->error);
@@ -78,7 +78,7 @@ final class ParserTest extends TestCase
 
         // Read tokens and make AST with them
         $parser = new Parser($tokens);
-        $ast = $parser->run();
+        $ast = $parser->parse();
 
         // If there was no errors, everything works fine
         $this->assertNull($ast->error);
@@ -97,7 +97,7 @@ final class ParserTest extends TestCase
 
         // Read tokens and make AST with them
         $parser = new Parser($tokens);
-        $ast = $parser->run();
+        $ast = $parser->parse();
 
         // If there was no errors, everything works fine
         $this->assertNull($ast->error);
@@ -116,7 +116,7 @@ final class ParserTest extends TestCase
 
         // Read tokens and make AST with them
         $parser = new Parser($tokens);
-        $ast = $parser->run();
+        $ast = $parser->parse();
 
         // If there was no errors, everything works fine
         $this->assertNull($ast->error);
@@ -135,7 +135,7 @@ final class ParserTest extends TestCase
 
         // Read tokens and make AST with them
         $parser = new Parser($tokens);
-        $ast = $parser->run();
+        $ast = $parser->parse();
 
         // If there was no errors, everything works fine
         $this->assertNull($ast->error);
@@ -154,7 +154,7 @@ final class ParserTest extends TestCase
 
         // Read tokens and make AST with them
         $parser = new Parser($tokens);
-        $ast = $parser->run();
+        $ast = $parser->parse();
 
         // If there was no errors, everything works fine
         $this->assertNull($ast->error);
@@ -173,7 +173,7 @@ final class ParserTest extends TestCase
 
         // Read tokens and make AST with them
         $parser = new Parser($tokens);
-        $ast = $parser->run();
+        $ast = $parser->parse();
 
         // If there was no errors, everything works fine
         $this->assertNull($ast->error);
@@ -192,7 +192,7 @@ final class ParserTest extends TestCase
 
         // Read tokens and make AST with them
         $parser = new Parser($tokens);
-        $ast = $parser->run();
+        $ast = $parser->parse();
 
         // If there was no errors, everything works fine
         $this->assertNull($ast->error);
@@ -211,7 +211,7 @@ final class ParserTest extends TestCase
 
         // Read tokens and make AST with them
         $parser = new Parser($tokens);
-        $ast = $parser->run();
+        $ast = $parser->parse();
 
         // If there was no errors, everything works fine
         $this->assertNull($ast->error);
@@ -230,7 +230,7 @@ final class ParserTest extends TestCase
 
         // Read tokens and make AST with them
         $parser = new Parser($tokens);
-        $ast = $parser->run();
+        $ast = $parser->parse();
 
         // If there was no errors, everything works fine
         $this->assertNull($ast->error);
@@ -249,7 +249,7 @@ final class ParserTest extends TestCase
 
         // Read tokens and make AST with them
         $parser = new Parser($tokens);
-        $ast = $parser->run();
+        $ast = $parser->parse();
 
         // If there was no errors, everything works fine
         $this->assertNull($ast->error);
@@ -268,7 +268,7 @@ final class ParserTest extends TestCase
 
         // Read tokens and make AST with them
         $parser = new Parser($tokens);
-        $ast = $parser->run();
+        $ast = $parser->parse();
 
         // If there was no errors, everything works fine
         $this->assertNull($ast->error);
@@ -287,7 +287,7 @@ final class ParserTest extends TestCase
 
         // Read tokens and make AST with them
         $parser = new Parser($tokens);
-        $ast = $parser->run();
+        $ast = $parser->parse();
 
         // If there was no errors, everything works fine
         $this->assertNull($ast->error);
@@ -306,7 +306,7 @@ final class ParserTest extends TestCase
 
         // Read tokens and make AST with them
         $parser = new Parser($tokens);
-        $ast = $parser->run();
+        $ast = $parser->parse();
 
         // If there was no errors, everything works fine
         $this->assertNull($ast->error);
@@ -325,7 +325,7 @@ final class ParserTest extends TestCase
 
         // Read tokens and make AST with them
         $parser = new Parser($tokens);
-        $ast = $parser->run();
+        $ast = $parser->parse();
 
         // If there was no errors, everything works fine
         $this->assertNull($ast->error);
@@ -344,7 +344,7 @@ final class ParserTest extends TestCase
 
         // Read tokens and make AST with them
         $parser = new Parser($tokens);
-        $ast = $parser->run();
+        $ast = $parser->parse();
 
         // If there was no errors, everything works fine
         $this->assertNull($ast->error);
@@ -363,7 +363,7 @@ final class ParserTest extends TestCase
 
         // Read tokens and make AST with them
         $parser = new Parser($tokens);
-        $ast = $parser->run();
+        $ast = $parser->parse();
 
         // If there was no errors, everything works fine
         $this->assertNull($ast->error);
@@ -384,7 +384,7 @@ final class ParserTest extends TestCase
 
             // Read tokens and make AST with them
             $parser = new Parser($tokens);
-            $ast = $parser->run();
+            $ast = $parser->parse();
 
             // If there was no errors, everything works fine
             $this->assertNull($ast->error);

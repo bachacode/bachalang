@@ -24,7 +24,7 @@ final class InterpreterTest extends TestCase
 
         // Read tokens and make AST with them
         $parser = new Parser($tokens);
-        $ast = $parser->run();
+        $ast = $parser->parse();
 
         $globalSymbolTable = new SymbolTable();
         $context = new Context(
@@ -55,7 +55,7 @@ final class InterpreterTest extends TestCase
 
         // Read tokens and make AST with them
         $parser = new Parser($tokens);
-        $ast = $parser->run();
+        $ast = $parser->parse();
 
         $globalSymbolTable = new SymbolTable();
         $context = new Context(
@@ -86,7 +86,7 @@ final class InterpreterTest extends TestCase
 
         // Read tokens and make AST with them
         $parser = new Parser($tokens);
-        $ast = $parser->run();
+        $ast = $parser->parse();
 
         $globalSymbolTable = new SymbolTable();
         $context = new Context(
@@ -126,7 +126,7 @@ final class InterpreterTest extends TestCase
 
             // Read tokens and make AST with them
             $parser = new Parser($tokens);
-            $ast = $parser->run();
+            $ast = $parser->parse();
 
             // Visit every node of the AST and return a Runtime Result;
             $runtime = Interpreter::visit($ast->node, $context);
@@ -151,7 +151,7 @@ final class InterpreterTest extends TestCase
 
         // Read tokens and make AST with them
         $parser = new Parser($tokens);
-        $ast = $parser->run();
+        $ast = $parser->parse();
 
         $globalSymbolTable = new SymbolTable();
         $context = new Context(
@@ -182,7 +182,7 @@ final class InterpreterTest extends TestCase
 
         // Read tokens and make AST with them
         $parser = new Parser($tokens);
-        $ast = $parser->run();
+        $ast = $parser->parse();
 
         $globalSymbolTable = new SymbolTable();
         $context = new Context(
@@ -213,7 +213,7 @@ final class InterpreterTest extends TestCase
 
         // Read tokens and make AST with them
         $parser = new Parser($tokens);
-        $ast = $parser->run();
+        $ast = $parser->parse();
 
         $globalSymbolTable = new SymbolTable();
         $context = new Context(
@@ -244,7 +244,7 @@ final class InterpreterTest extends TestCase
 
         // Read tokens and make AST with them
         $parser = new Parser($tokens);
-        $ast = $parser->run();
+        $ast = $parser->parse();
 
         $globalSymbolTable = new SymbolTable();
         $context = new Context(
@@ -284,7 +284,7 @@ final class InterpreterTest extends TestCase
 
             // Read tokens and make AST with them
             $parser = new Parser($tokens);
-            $ast = $parser->run();
+            $ast = $parser->parse();
 
             // Visit every node of the AST and return a Runtime Result;
             $runtime = Interpreter::visit($ast->node, $context);
@@ -322,7 +322,7 @@ final class InterpreterTest extends TestCase
 
             // Read tokens and make AST with them
             $parser = new Parser($tokens);
-            $ast = $parser->run();
+            $ast = $parser->parse();
 
             // Visit every node of the AST and return a Runtime Result;
             $runtime = Interpreter::visit($ast->node, $context);

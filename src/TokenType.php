@@ -6,7 +6,6 @@ namespace Bachalang;
 
 enum TokenType: string
 {
-    case ILLEGAL = 'ILLEGAL';
     case EOF = 'EOF';
 
     // Identifiers + literals
@@ -65,13 +64,14 @@ enum TokenType: string
             '{' => TokenType::LCURLY,
             '}' => TokenType::RCURLY,
             ',' => TokenType::COMMA,
+            ';' => TokenType::SEMICOLON
         };
     }
 
     public static function checkToken(mixed $char): bool
     {
         return match($char) {
-            '+', '-', '*', '/', '^', '(', ')', '[', ']', '{', '}', ','  => true,
+            '+', '-', '*', '/', '^', '(', ')', '[', ']', '{', '}', ',', ';'  => true,
             default => false
         };
     }

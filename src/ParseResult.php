@@ -12,32 +12,44 @@ class ParseResult
     public function __construct(
         public ?InvalidSyntaxError $error = null,
         public ?Node $node = null,
-        public int $advanceCount = 0
+        public int $lastRegisteredAdvanceCount = 0,
+        public int $advanceCount = 0,
+        public int $toReverseCount = 0
     ) {
     }
 
-    public function register(ParseResult $res)
+    public function register(ParseResult $res): ?Node
     {
+        $this->lastRegisteredAdvanceCount = $res->advanceCount;
         $this->advanceCount += $res->advanceCount;
         if($res->error != null) {
             $this->error = $res->error;
-            return $res->error;
         }
         return $res->node;
     }
 
-    public function registerAdvancement()
+    public function tryRegister(ParseResult $res): ?Node
     {
+        if($res->error != null) {
+            $this->toReverseCount = $res->advanceCount;
+            return null;
+        }
+        return $this->register($res);
+    }
+
+    public function registerAdvancement(): void
+    {
+        $this->lastRegisteredAdvanceCount = 1;
         $this->advanceCount++;
     }
 
-    public function success($node)
+    public function success(Node $node): static
     {
         $this->node = $node;
         return $this;
     }
 
-    public function failure($error)
+    public function failure($error): static
     {
         if($this->error == null || $this->advanceCount == 0) {
             $this->error = $error;

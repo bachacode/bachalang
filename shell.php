@@ -11,8 +11,16 @@ $runner = new Runner();
 
 while (true) {
     $text = readline('bachalang > ');
+    if (trim($text) == "") {
+        continue;
+    }
     $result = $runner->run($text);
+
     if(!is_null($result)) {
-        echo $result . PHP_EOL;
+        if (count($result->elements) == 1) {
+            echo $result->elements[0] . PHP_EOL;
+        } else {
+            echo $result . PHP_EOL;
+        }
     }
 }

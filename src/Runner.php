@@ -57,7 +57,7 @@ class Runner
         // Read tokens and make AST with them
         $this->parser = new Parser($tokens);
         // $this->parser->setTokens($tokens);
-        $ast = $this->parser->run();
+        $ast = $this->parser->parse();
 
         // Check for InvalidSyntaxErrors
         if(!is_null($ast->error)) {

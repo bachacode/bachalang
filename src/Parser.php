@@ -17,6 +17,7 @@ use Bachalang\Nodes\UnaryOpNode;
 use Bachalang\Nodes\VarAccessNode;
 use Bachalang\Nodes\VarAssignNode;
 use Bachalang\Nodes\WhileNode;
+use Bachalang\Values\ArrayVal;
 
 class Parser
 {
@@ -32,7 +33,7 @@ class Parser
         $this->currentToken = $this->tokens[$this->tokenIndex];
     }
 
-    public function setTokens(array $tokens)
+    public function setTokens(array $tokens): void
     {
         $this->tokenIndex = 0;
         $this->tokens = $tokens;
@@ -42,16 +43,27 @@ class Parser
     private function advance(): Token
     {
         $this->tokenIndex++;
-
-        if ($this->tokenIndex < count($this->tokens)) {
-            $this->currentToken = $this->tokens[$this->tokenIndex];
-        }
+        $this->updateCurrentToken();
         return $this->currentToken;
     }
 
-    public function run()
+    private function reverse(int $amount = 1): Token
     {
-        $res = $this->expr();
+        $this->tokenIndex -= $amount;
+        $this->updateCurrentToken();
+        return $this->currentToken;
+    }
+
+    private function updateCurrentToken(): void
+    {
+        if ($this->tokenIndex < count($this->tokens)) {
+            $this->currentToken = $this->tokens[$this->tokenIndex];
+        }
+    }
+
+    public function parse(): ParseResult
+    {
+        $res = $this->statements();
         if($res->error == null && $this->currentToken->type != TokenType::EOF) {
             return $res->failure(new InvalidSyntaxError(
                 $this->currentToken->posStart,
@@ -62,7 +74,54 @@ class Parser
         return $res;
     }
 
-    private function expr()
+    private function statements(): ParseResult
+    {
+        $result = new ParseResult();
+        $statements = [];
+        $posStart = clone $this->currentToken->posStart;
+
+        while ($this->currentToken->type == TokenType::SEMICOLON) {
+            $result->registerAdvancement();
+            $this->advance();
+        }
+
+        $stmt = $result->register($this->expr());
+        if(!is_null($result->error)) {
+            return $result;
+        }
+        $statements[] = $stmt;
+
+        $moreStatements = true;
+        while (true) {
+            $nlCounter = 0;
+            while ($this->currentToken->type == TokenType::SEMICOLON) {
+                $result->registerAdvancement();
+                $this->advance();
+                $nlCounter++;
+            }
+            if($nlCounter == 0) {
+                $moreStatements = false;
+            }
+            if(!$moreStatements) {
+                break;
+            }
+            $stmt = $result->tryRegister($this->expr());
+            if(is_null($stmt)) {
+                $this->reverse($result->toReverseCount);
+                $moreStatements = false;
+                continue;
+            }
+            $statements[] = $stmt;
+        }
+
+        return $result->success(new ArrayNode(
+            $statements,
+            $posStart,
+            clone $this->currentToken->posEnd
+        ));
+    }
+
+    private function expr(): ParseResult
     {
         $result = new ParseResult();
         // #1 Priority - Variable definitions
@@ -122,7 +181,7 @@ class Parser
 
     }
 
-    private function compExpr()
+    private function compExpr(): ParseResult
     {
         $result = new ParseResult();
         // #3 Priority - Negate comparison expressions
@@ -161,19 +220,19 @@ class Parser
         }
     }
 
-    private function arithExpr()
+    private function arithExpr(): ParseResult
     {
         // #5 Priority - Aritmethic expression between two terms
         return $this->getBinaryOperation(array($this, 'term'), [TokenType::PLUS, TokenType::MINUS]);
     }
 
-    private function term()
+    private function term(): ParseResult
     {
         // #6 Priority - Term operation between two factors
         return $this->getBinaryOperation(array($this, 'factor'), [TokenType::MUL, TokenType::DIV]);
     }
 
-    private function factor()
+    private function factor(): ParseResult
     {
         $result = new ParseResult();
         $token = $this->currentToken;
@@ -195,13 +254,13 @@ class Parser
         }
     }
 
-    private function power()
+    private function power(): ParseResult
     {
         // #9 Priority - Callable Function
         return $this->getBinaryOperation(array($this, 'call'), [TokenType::POW]);
     }
 
-    private function call()
+    private function call(): ParseResult
     {
         $result = new ParseResult();
         $atom = $result->register($this->atom());
@@ -254,7 +313,7 @@ class Parser
         return $result->success($atom);
     }
 
-    private function atom()
+    private function atom(): ParseResult
     {
         $result = new ParseResult();
         $token = $this->currentToken;
@@ -350,7 +409,7 @@ class Parser
         }
     }
 
-    private function arrayExpr()
+    private function arrayExpr(): ParseResult
     {
         $result = new ParseResult();
         $elementNodes = [];
@@ -405,7 +464,7 @@ class Parser
         return $result->success(new ArrayNode($elementNodes, $posStart, clone $this->currentToken->posEnd));
     }
 
-    private function ifExpr()
+    private function ifExpr(): ParseResult
     {
         $result = new ParseResult();
         $cases = [];
@@ -531,7 +590,7 @@ class Parser
         return $result->success(new IfNode($cases, $elseCase));
     }
 
-    private function forExpr()
+    private function forExpr(): ParseResult
     {
         $result = new ParseResult();
 
@@ -632,7 +691,7 @@ class Parser
         return $result->success(new ForNode($varName, $startValue, $endValue, $stepValue, $bodyNode));
     }
 
-    private function whileExpr()
+    private function whileExpr(): ParseResult
     {
         $result = new ParseResult();
 
@@ -682,7 +741,7 @@ class Parser
         return $result->success(new WhileNode($condition, $bodyNode));
     }
 
-    private function funcDef()
+    private function funcDef(): ParseResult
     {
         $result = new ParseResult();
 
@@ -783,7 +842,7 @@ class Parser
         return $result->success(new FuncDefNode($varNameToken, $argNameTokens, $nodeToReturn));
     }
 
-    private function getBinaryOperation(callable $funcA, array $operators, ?callable $funcB = null)
+    private function getBinaryOperation(callable $funcA, array $operators, ?callable $funcB = null): ParseResult
     {
         if($funcB == null) {
             $funcB = $funcA;
