@@ -63,7 +63,7 @@ class BaseFunc extends Value
             ));
         }
 
-        return $result->success(new Number(Number::NULL));
+        return $result->success(Number::null());
     }
 
     public function populateArgs($argNames, &$args, $execContext)
@@ -75,7 +75,7 @@ class BaseFunc extends Value
             $argValue->setContext($execContext);
             $execContext->symbolTable->set($argName, $argValue);
         }
-        return $result->success(new Number(Number::NULL));
+        return $result->success(Number::null());
     }
 
     public function checkAndPopulateArgs($argNames, &$args, $execContext)
@@ -90,7 +90,7 @@ class BaseFunc extends Value
             return $result;
         }
 
-        return $result->success(new Number(Number::NULL));
+        return $result->success(Number::null());
     }
 
     public function __toString(): string

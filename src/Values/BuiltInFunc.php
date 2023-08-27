@@ -70,7 +70,7 @@ class BuiltInFunc extends BaseFunc
     private function execute_print(Context $execContext): RuntimeResult
     {
         print((string)$execContext->symbolTable->get('value') . PHP_EOL);
-        return (new RuntimeResult())->success(new Number(Number::NULL));
+        return (new RuntimeResult())->success(Number::null());
     }
 
     private function execute_print_return(Context $execContext): RuntimeResult
@@ -102,7 +102,7 @@ class BuiltInFunc extends BaseFunc
     private function execute_clear(Context $execContext): RuntimeResult
     {
         echo chr(27).chr(91).'H'.chr(27).chr(91).'J'; // ^[H^[J
-        return (new RuntimeResult())->success(new Number(Number::NULL));
+        return (new RuntimeResult())->success(Number::null());
     }
 
     private function execute_is_number(Context $execContext): RuntimeResult
@@ -150,7 +150,7 @@ class BuiltInFunc extends BaseFunc
             );
         }
         $array->elements[] = $value;
-        return $result->success(new Number(Number::NULL));
+        return $result->success(Number::null());
     }
 
     private function execute_pop(Context $execContext): RuntimeResult
@@ -226,7 +226,7 @@ class BuiltInFunc extends BaseFunc
         }
 
         $array->elements = array_merge($array->elements, $secondArray->elements);
-        return $result->success(new Number(Number::NULL));
+        return $result->success(Number::null());
     }
 
     public function __toString(): string

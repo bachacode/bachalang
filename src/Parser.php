@@ -8,11 +8,14 @@ use Bachalang\Errors\InvalidSyntaxError;
 use Bachalang\Helpers\StringHelper;
 use Bachalang\Nodes\ArrayNode;
 use Bachalang\Nodes\BinOpNode;
+use Bachalang\Nodes\BreakNode;
 use Bachalang\Nodes\CallNode;
+use Bachalang\Nodes\ContinueNode;
 use Bachalang\Nodes\ForNode;
 use Bachalang\Nodes\FuncDefNode;
 use Bachalang\Nodes\IfNode;
 use Bachalang\Nodes\NumberNode;
+use Bachalang\Nodes\ReturnNode;
 use Bachalang\Nodes\StringNode;
 use Bachalang\Nodes\UnaryOpNode;
 use Bachalang\Nodes\VarAccessNode;
@@ -85,7 +88,7 @@ class Parser
             $this->advance();
         }
 
-        $stmt = $result->register($this->expr());
+        $stmt = $result->register($this->statement());
         if(!is_null($result->error)) {
             return $result;
         }
@@ -105,7 +108,7 @@ class Parser
             if(!$moreStatements) {
                 break;
             }
-            $stmt = $result->tryRegister($this->expr());
+            $stmt = $result->tryRegister($this->statement());
             if(is_null($stmt)) {
                 $this->reverse($result->toReverseCount);
                 $moreStatements = false;
@@ -119,6 +122,47 @@ class Parser
             $posStart,
             clone $this->currentToken->posEnd
         ));
+    }
+
+    private function statement(): ParseResult
+    {
+        $result = new ParseResult();
+        $posStart = clone $this->currentToken->posStart;
+
+        if($this->currentToken->matches(TokenType::KEYWORD, 'return')) {
+            $result->registerAdvancement();
+            $this->advance();
+
+            $expr = $result->tryRegister($this->expr());
+            if(is_null($expr)) {
+                $this->reverse($result->toReverseCount);
+            }
+            return $result->success(new ReturnNode($expr, $posStart, clone $this->currentToken->posEnd));
+        }
+
+        if($this->currentToken->matches(TokenType::KEYWORD, 'continue')) {
+            $result->registerAdvancement();
+            $this->advance();
+
+            return $result->success(new ContinueNode($posStart, clone $this->currentToken->posEnd));
+        }
+
+        if($this->currentToken->matches(TokenType::KEYWORD, 'break')) {
+            $result->registerAdvancement();
+            $this->advance();
+
+            return $result->success(new BreakNode($posStart, clone $this->currentToken->posEnd));
+        }
+
+        $expr = $result->register($this->expr());
+        if($result->error != null) {
+            return $result->failure(new InvalidSyntaxError(
+                $this->currentToken->posStart,
+                $this->currentToken->posEnd,
+                "Expected 'RETURN', 'CONTINUE', 'BREAK', 'INT', 'FLOAT', 'IDENTIFIER', 'FOR', 'WHILE', 'FUNCTION', '+', '-', '(', '[', or '!'"
+            ));
+        }
+        return $result->success($expr);
     }
 
     private function expr(): ParseResult
@@ -859,7 +903,7 @@ class Parser
         $result->registerAdvancement();
         $this->advance();
 
-        return $result->success(new FuncDefNode($varNameToken, $argNameTokens, $nodeToReturn));
+        return $result->success(new FuncDefNode($varNameToken, $argNameTokens, $nodeToReturn, false));
     }
 
     private function getBinaryOperation(callable $funcA, array $operators, ?callable $funcB = null): ParseResult

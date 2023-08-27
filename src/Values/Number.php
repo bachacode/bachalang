@@ -34,6 +34,11 @@ class Number extends Value
         }
     }
 
+    public static function null(): Number
+    {
+        return new Number(Number::NULL);
+    }
+
     public function substractedBy(Value $other): Number | RuntimeError
     {
         if($other instanceof Number) {

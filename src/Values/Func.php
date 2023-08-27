@@ -15,6 +15,7 @@ class Func extends BaseFunc
         mixed $name,
         public $bodyNode,
         public $argNames,
+        public bool $shouldAutoReturn = false,
         ?Position $posStart = null,
         ?Position $posEnd = null,
         ?Context $context = null
@@ -28,14 +29,20 @@ class Func extends BaseFunc
         $result = new RuntimeResult();
         $execContext = $this->generateNewContext();
         $result->register($this->checkAndPopulateArgs($this->argNames, $args, $execContext));
-        if(!is_null($result->error)) {
+        if($result->shouldReturn()) {
             return $result;
         }
         $value = $result->register(Interpreter::visit($this->bodyNode, $execContext));
-        if(!is_null($result->error)) {
+        if($result->shouldReturn() && $result->funcReturnValue == null) {
             return $result;
         }
-
-        return $result->success($value);
+        if($this->shouldAutoReturn) {
+            $returnValue = $value;
+        } elseif($result->funcReturnValue) {
+            $returnValue = $result->funcReturnValue;
+        } else {
+            $returnValue = Number::null();
+        }
+        return $result->success($returnValue);
     }
 }

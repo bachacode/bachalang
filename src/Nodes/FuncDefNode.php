@@ -11,7 +11,8 @@ class FuncDefNode extends Node
     public function __construct(
         public ?Token $varNameToken,
         public $argNameTokens,
-        public Node $bodyNode
+        public Node $bodyNode,
+        public bool $shouldAutoReturn
     ) {
         if(!is_null($varNameToken)) {
             $this->posStart = $varNameToken->posStart;

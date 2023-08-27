@@ -25,7 +25,7 @@ class Runner
 
         // Create Global Symbol Table - Keep track of variables
         $this->globalSymbolTable = new SymbolTable();
-        $this->globalSymbolTable->set('null', new Number(Number::NULL));
+        $this->globalSymbolTable->set('null', Number::null());
         $this->globalSymbolTable->set('true', new Number(Number::TRUE));
         $this->globalSymbolTable->set('false', new Number(Number::FALSE));
         // Create Built-in functions
