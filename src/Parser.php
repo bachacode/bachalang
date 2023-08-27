@@ -569,7 +569,7 @@ class Parser
             return $result;
         }
 
-        $cases[] = [$condition, $statements, true];
+        $cases[] = [$condition, $statements];
 
         if($this->currentToken->type != TokenType::RCURLY) {
             return $result->failure(new InvalidSyntaxError(
@@ -673,14 +673,14 @@ class Parser
             return $result->failure(new InvalidSyntaxError(
                 $this->currentToken->posStart,
                 $this->currentToken->posEnd,
-                "Expected '{' keyword after expression"
+                "Expected '{' after expression"
             ));
         }
 
         $result->registerAdvancement();
         $this->advance();
 
-        $bodyNode = $result->register($this->expr());
+        $bodyNode = $result->register($this->statements());
         if(!is_null($result->error)) {
             return $result;
         }
@@ -723,14 +723,14 @@ class Parser
             return $result->failure(new InvalidSyntaxError(
                 $this->currentToken->posStart,
                 $this->currentToken->posEnd,
-                "Expected '{' keyword after expression"
+                "Expected '{' after expression"
             ));
         }
 
         $result->registerAdvancement();
         $this->advance();
 
-        $bodyNode = $result->register($this->expr());
+        $bodyNode = $result->register($this->statements());
         if(!is_null($result->error)) {
             return $result;
         }
@@ -832,20 +832,32 @@ class Parser
         $result->registerAdvancement();
         $this->advance();
 
-        if($this->currentToken->type != TokenType::ARROW) {
+        if($this->currentToken->type != TokenType::LCURLY) {
             return $result->failure(new InvalidSyntaxError(
                 $this->currentToken->posStart,
                 $this->currentToken->posEnd,
-                "Expected '=>'"
+                "Expected '{' after ')'"
             ));
         }
 
         $result->registerAdvancement();
         $this->advance();
-        $nodeToReturn = $result->register($this->expr());
+
+        $nodeToReturn = $result->register($this->statements());
         if(!is_null($result->error)) {
             return $result;
         }
+
+        if($this->currentToken->type != TokenType::RCURLY) {
+            return $result->failure(new InvalidSyntaxError(
+                $this->currentToken->posStart,
+                $this->currentToken->posEnd,
+                "Expected '}' keyword after ')'"
+            ));
+        }
+
+        $result->registerAdvancement();
+        $this->advance();
 
         return $result->success(new FuncDefNode($varNameToken, $argNameTokens, $nodeToReturn));
     }

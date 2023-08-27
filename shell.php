@@ -21,6 +21,8 @@ while (true) {
             echo $result . PHP_EOL;
         } elseif(count($result->elements) == 1) {
             echo $result->elements[0] . PHP_EOL;
+        } else {
+            echo (string) $result . PHP_EOL;
         }
     }
 }

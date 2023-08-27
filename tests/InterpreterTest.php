@@ -8,7 +8,6 @@ use Bachalang\Lexer;
 use Bachalang\Parser;
 use Bachalang\SymbolTable;
 use Bachalang\Values\ArrayVal;
-use Bachalang\Values\Number;
 use PHPUnit\Framework\TestCase;
 
 final class InterpreterTest extends TestCase
@@ -231,7 +230,7 @@ final class InterpreterTest extends TestCase
     {
         // Test text for the lexer to read
         $text = 'if 1 < 1 { "false" } elseif 1 < 5 { "true" } else { "else" }';
-        $expected = "true";
+        $expected = null;
         // Making lexer with the test text
         $lexer = new Lexer('<stdin>', $text);
 
@@ -266,7 +265,7 @@ final class InterpreterTest extends TestCase
     {
         // Test text for the lexer to read
         $text = 'for i = 1 to 10 step 2 { "hola" }';
-        $expected = "[hola,hola,hola,hola,hola]";
+        $expected = null;
         // Making lexer with the test text
         $lexer = new Lexer('<stdin>', $text);
 
@@ -291,7 +290,7 @@ final class InterpreterTest extends TestCase
 
         // Asserts that the result is the expected
         if($runtime->result instanceof ArrayVal) {
-            $this->assertEquals($expected, $runtime->result->elements[0]);
+            $this->assertEquals($expected, $runtime->result->elements[0]->value);
         } else {
             $this->assertEquals($expected, $runtime->result->value);
         }
@@ -303,7 +302,7 @@ final class InterpreterTest extends TestCase
             'let numero = 1',
             'while numero < 3 { let numero = numero + 1 }'
         ];
-        $expected = "[2,3]";
+        $expected = null;
         $globalSymbolTable = new SymbolTable();
         $context = new Context(
             displayName: '<program>',
@@ -333,7 +332,7 @@ final class InterpreterTest extends TestCase
 
         // Asserts that the result is the expected
         if($runtime->result instanceof ArrayVal) {
-            $this->assertEquals($expected, $runtime->result->elements[0]);
+            $this->assertEquals($expected, $runtime->result->elements[0]->value);
         } else {
             $this->assertEquals($expected, $runtime->result->value);
         }
@@ -342,10 +341,11 @@ final class InterpreterTest extends TestCase
     public function testCanVisitFuncDefAndCallNodes(): void
     {
         $texts = [
-            'function sum(a,b) => a + b',
+            'function sum(a,b) { a + b }',
             'sum(3,2)'
         ];
-        $expected = 5;
+        $expected = null;
+
         $globalSymbolTable = new SymbolTable();
         $context = new Context(
             displayName: '<program>',

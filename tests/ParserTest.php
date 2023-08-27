@@ -372,7 +372,7 @@ final class ParserTest extends TestCase
     public function testCanParseFuncDefAndParseCalls(): void
     {
         $texts = [
-            'function sum(a,b) => a + b',
+            'function sum(a,b) { a + b }',
             'sum(3,2)'
         ];
         foreach ($texts as $text) {
