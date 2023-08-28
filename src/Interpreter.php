@@ -27,14 +27,14 @@ use Bachalang\Values\Func;
 use Bachalang\Values\Number;
 use Bachalang\Values\StringVal;
 use Exception;
-use PhpParser\Builder\Interface_;
 
 class Interpreter
 {
     public static function visit(Node &$node, Context &$context): RuntimeError|RuntimeResult
     {
         $methodName = "visit";
-        $methodName .= basename(get_class($node));
+        $nodeName = get_class(clone $node);
+        $methodName .= basename($nodeName);
 
         if(method_exists(Interpreter::class, $methodName)) {
             return call_user_func_array([Interpreter::class, $methodName], [&$node, &$context]);
