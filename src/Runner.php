@@ -6,6 +6,7 @@ namespace Bachalang;
 
 use Bachalang\Values\BuiltInFunc;
 use Bachalang\Values\Number;
+use Bachalang\Values\Value;
 
 class Runner
 {
@@ -20,7 +21,7 @@ class Runner
         $builtInFunctions = [
             'print', 'print_return', 'input', 'input_int', 'clear',
             'is_number', 'is_string', 'is_array', 'is_function',
-            'append', 'pop', 'extend'
+            'append', 'len', 'pop', 'extend', 'run'
         ];
 
         // Create Global Symbol Table - Keep track of variables
@@ -41,10 +42,10 @@ class Runner
         );
     }
 
-    public function run(string $text)
+    public function run(string $fn, string $text): ?Value
     {
         // Read text and make tokens with it
-        $this->lexer = new Lexer('<stdin>', $text);
+        $this->lexer = new Lexer($fn, $text);
         // $this->lexer->setText($text);
         $tokens = $this->lexer->makeTokens();
 
@@ -52,7 +53,8 @@ class Runner
         if(!is_null($this->lexer->error)) {
             $error = $this->lexer->error;
             $this->lexer->error = null;
-            return $error;
+            echo $error . PHP_EOL;
+            return null;
         }
         // Read tokens and make AST with them
         $this->parser = new Parser($tokens);
@@ -61,14 +63,16 @@ class Runner
 
         // Check for InvalidSyntaxErrors
         if(!is_null($ast->error)) {
-            return $ast->error;
+            echo (string) $ast->error  . PHP_EOL;
+            return null;
         }
         // Visit every node of the AST and return a Runtime Result;
         $runtime = Interpreter::visit($ast->node, $this->context);
 
         // Check for RuntimeErrors
         if(!is_null($runtime->error)) {
-            return $runtime->error;
+            echo $runtime->error  . PHP_EOL;
+            return null;
         }
 
         // If not errors detected, return the Runtime Result;

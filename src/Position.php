@@ -11,7 +11,8 @@ class Position
         public int $line,
         public int $col,
         public string $fn,
-        public string $ftxt
+        public string $ftxt,
+        public int $counter = 0,
     ) {
     }
 
@@ -20,9 +21,13 @@ class Position
         $this->index++;
         $this->col++;
 
-        if($currentChar != null && strstr($currentChar, PHP_EOL)) {
-            $this->line++;
-            $this->col = 0;
+        if($currentChar != null && str_contains(PHP_EOL, $currentChar)) {
+            $this->counter++;
+            if($this->counter == 2) {
+                $this->line++;
+                $this->col = 0;
+                $this->counter = 0;
+            }
         }
         return $this;
     }

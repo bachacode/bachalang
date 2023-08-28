@@ -44,7 +44,12 @@ class Lexer
     public function makeTokens(): array
     {
         while ($this->ch != null && $this->error == null) {
-            if(ctype_space($this->ch)) {
+
+            if(str_contains(PHP_EOL, $this->ch) || str_contains(";", $this->ch)) {
+                $this->tokens[] = $this->makeNewLine();
+            } elseif (strstr('#', $this->ch)) {
+                $this->skipComment();
+            } elseif (strstr("\t", $this->ch) || ctype_space($this->ch)) {
                 $this->advance();
             } elseif (str_contains(LETTERS, $this->ch)) {
                 $this->tokens[] = $this->makeIdentifier();
@@ -77,6 +82,14 @@ class Lexer
         }
         $this->tokens[] = new Token(TokenType::EOF, $this->pos);
         return $this->tokens;
+    }
+
+    private function makeNewLine(): Token
+    {
+        $char = $this->ch;
+        $posStart = clone $this->pos;
+        $this->advance();
+        return new Token(TokenType::NEWLINE, $posStart);
     }
 
     private function makeDelOrOps()
@@ -216,5 +229,15 @@ class Lexer
         } else {
             return new Token(TokenType::FLOAT, $posStart, $this->pos, (float) $numString);
         }
+    }
+
+    private function skipComment(): void
+    {
+        $this->advance();
+
+        while(!strstr(PHP_EOL, $this->ch)) {
+            $this->advance();
+        }
+        $this->advance();
     }
 }

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Bachalang;
 
 use Bachalang\Errors\InvalidSyntaxError;
-use Bachalang\Helpers\StringHelper;
 use Bachalang\Nodes\ArrayNode;
 use Bachalang\Nodes\BinOpNode;
 use Bachalang\Nodes\BreakNode;
@@ -83,7 +82,7 @@ class Parser
         $statements = [];
         $posStart = clone $this->currentToken->posStart;
 
-        while ($this->currentToken->type == TokenType::SEMICOLON) {
+        while ($this->currentToken->type == TokenType::NEWLINE) {
             $result->registerAdvancement();
             $this->advance();
         }
@@ -97,7 +96,7 @@ class Parser
         $moreStatements = true;
         while (true) {
             $nlCounter = 0;
-            while ($this->currentToken->type == TokenType::SEMICOLON) {
+            while ($this->currentToken->type == TokenType::NEWLINE) {
                 $result->registerAdvancement();
                 $this->advance();
                 $nlCounter++;

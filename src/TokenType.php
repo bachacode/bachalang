@@ -16,7 +16,7 @@ enum TokenType: string
 
     // Delimiters
     case COMMA = 'COMMA';
-    case SEMICOLON = 'SEMICOLON';
+    case NEWLINE = 'NEWLINE';
 
     case LPAREN = 'LPAREN';
     case RPAREN = 'RPAREN';
@@ -64,7 +64,6 @@ enum TokenType: string
             '{' => TokenType::LCURLY,
             '}' => TokenType::RCURLY,
             ',' => TokenType::COMMA,
-            ';' => TokenType::SEMICOLON
         };
     }
 

@@ -6,10 +6,9 @@ namespace Bachalang\Values;
 
 use Bachalang\Context;
 use Bachalang\Errors\RuntimeError;
-use Bachalang\Interpreter;
 use Bachalang\Position;
+use Bachalang\Runner;
 use Bachalang\RuntimeResult;
-use Exception;
 
 class BuiltInFunc extends BaseFunc
 {
@@ -28,8 +27,10 @@ class BuiltInFunc extends BaseFunc
         readonly array $is_string = ['value'],
         readonly array $is_function = ['value'],
         readonly array $append = ['array', 'value'],
+        readonly array $len = ['array'],
         readonly array $pop = ['array', 'index'],
         readonly array $extend = ['array', 'secondArray'],
+        readonly array $run = ['fn']
     ) {
 
         parent::__construct($name, $posStart, $posEnd, $context);
@@ -153,6 +154,25 @@ class BuiltInFunc extends BaseFunc
         return $result->success(Number::null());
     }
 
+    private function execute_len(Context $execContext): RuntimeResult
+    {
+        $result = new RuntimeResult();
+        $array = $execContext->symbolTable->get('array');
+
+        if(!$array instanceof ArrayVal) {
+            return $result->failure(
+                new RuntimeError(
+                    $this->posStart,
+                    $this->posEnd,
+                    "the argument must be an array",
+                    $execContext
+                )
+            );
+        }
+        $length = count($array->elements);
+        return $result->success(new Number($length));
+    }
+
     private function execute_pop(Context $execContext): RuntimeResult
     {
         $result = new RuntimeResult();
@@ -226,6 +246,53 @@ class BuiltInFunc extends BaseFunc
         }
 
         $array->elements = array_merge($array->elements, $secondArray->elements);
+        return $result->success(Number::null());
+    }
+
+    public function execute_run(Context $execContext)
+    {
+        $result = new RuntimeResult();
+        $fn = $execContext->symbolTable->get('fn');
+
+        if(!$fn instanceof StringVal) {
+            return $result->failure(
+                new RuntimeError(
+                    $this->posStart,
+                    $this->posEnd,
+                    "Argument must be a string",
+                    $execContext
+                )
+            );
+        }
+
+        $fn = $fn->value;
+
+        try {
+            $script = file_get_contents($fn);
+        } catch (\Throwable $th) {
+
+            return $result->failure(
+                new RuntimeError(
+                    $this->posStart,
+                    $this->posEnd,
+                    "Failed to load script \"{$fn}\" \n" . (string) $th,
+                    $execContext
+                )
+            );
+        }
+        $runner = new Runner();
+        $error = $runner->run($fn, $script);
+
+        if(!is_null($error)) {
+            $result->failure(
+                new RuntimeError(
+                    $this->posStart,
+                    $this->posEnd,
+                    "Failed to finish executing script \"{$fn}\" \n" . (string) $error,
+                    $execContext
+                )
+            );
+        }
         return $result->success(Number::null());
     }
 
