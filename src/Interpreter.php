@@ -26,6 +26,7 @@ use Bachalang\Values\BuiltInFunc;
 use Bachalang\Values\Func;
 use Bachalang\Values\Number;
 use Bachalang\Values\StringVal;
+use Bachalang\Helpers\StringHelper;
 use Exception;
 
 class Interpreter
@@ -33,8 +34,8 @@ class Interpreter
     public static function visit(Node &$node, Context &$context): RuntimeError|RuntimeResult
     {
         $methodName = "visit";
-        $nodeName = get_class(clone $node);
-        $methodName .= basename($nodeName);
+        $nodeName = StringHelper::get_class_name(get_class($node));
+        $methodName .= $nodeName;
 
         if(method_exists(Interpreter::class, $methodName)) {
             return call_user_func_array([Interpreter::class, $methodName], [&$node, &$context]);

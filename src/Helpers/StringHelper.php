@@ -75,4 +75,10 @@ class StringHelper
             echo $newLineCharacter;
         }
     }
+
+    public static function get_class_name($className)
+    {
+        if ($pos = strrpos($className, '\\')) return substr($className, $pos + 1);
+        return $pos;
+    }
 }
